@@ -10,7 +10,7 @@ def create_snapshots(sortedgraphfile, splitfilename, minutes)
   timestepsize = minutes * 60000
   lasttimesteptime = 0
   filenumber = 0
-  splitfile = File.new
+  splitfile = open(splitfilename + filenumber.to_s, 'w')
   
   File.open(sortedgraphfile, 'r') do |gf|
     while line = gf.gets
@@ -19,13 +19,14 @@ def create_snapshots(sortedgraphfile, splitfilename, minutes)
       
       if timestamp - lasttimesteptime >= timestepsize
         lasttimesteptime = timestamp
-        splitfile.close
-        splitfile = open(splitfilename + filenumber.to_s)
+        unless filenumber == 0
+          splitfile.close
+          splitfile = open(splitfilename + filenumber.to_s, 'w')
+        end
         filenumber += 1
       end
       
       splitfile.write(line)
-      splitfile.write("\n")
     end
   end
   splitfile.close

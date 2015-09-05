@@ -42,7 +42,7 @@ module DynamicGraphMetrics
     
     # split graph into snapshots of a specific duration
     elsif args[0] == "split"
-      args[1] && args[2] && args[3] ? create_snapshots(args[1], args[2], args[3]) : error(true)
+      args[1] && args[2] && args[3] ? create_snapshots(args[1], args[2], args[3].to_i) : error(true)
       
     # creates _PerUser and _total files for a sorted interaction file
     elsif args[0] == "userpairs"
