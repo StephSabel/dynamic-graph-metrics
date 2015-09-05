@@ -30,4 +30,25 @@ def create_snapshots(sortedgraphfile, splitfilename, minutes)
   splitfile.close
 end
 
+def error(admonish)
+  if admonish
+    puts "--------- ERROR ---------"
+    puts "unknown command or missing arguments of arguments"
+    puts "\n"
+  end
+  
+  puts "--------- USAGE ---------"
+  puts "- create a new mapping:"
+  puts "\t newmap $graphfile $retweeterfile $nameformappingfile"
+  puts "- load existing mapping"
+  puts "\t loadmap $mappingfile"
+  puts "- get original ID and Twitter handle of a mapped id"
+  puts "\t unmap $id"
+  puts "- split graph into snapshots of specific duration"
+  puts "\t split $sortedgraphfile $splitfilename $minutes"
+end
+    
+  
+
+
 

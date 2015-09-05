@@ -4,13 +4,11 @@
 # The original Twitter user IDs are too big for GraphChi to use as identifiers. 
 # This script maps IDs from an interaction file to smaller numbers and creates a record of the mapping
 
-
-Class IdMapping
-  
-  idmap = {}
-  namemap = {}
+class Mapping
 
   def initialize(newmapping, mappingfile, graphfile = nil, retweeterfile = nil)
+    @idmap = {}
+    @namemap = {}
     if newmapping
       if (graphfile && retweeterfile)
         map_graph(graphfile, graphfile+"-mapped", retweeterfile, retweeterfile+"-mapped", mappingfile)
@@ -30,8 +28,8 @@ Class IdMapping
         name = line.split(' ')[1]
         oldid = line.split(' ')[2].to_i
         
-        idmap[newid] = oldid
-        namemap[newid] = name
+        @idmap[newid] = oldid
+        @namemap[newid] = name
       end
     end
   end
@@ -46,7 +44,7 @@ Class IdMapping
   
     # read from one file, create mapping and write to the other
     File.open(graphfile, 'r') do |gf|
-      File.open(mappedfile, 'w') do |mgf|
+      File.open(mappedgraphfile, 'w') do |mgf|
         while line = gf.gets
           user1 = line.split(' ')[0].to_i
           user2 = line.split(' ')[1].to_i
@@ -61,7 +59,7 @@ Class IdMapping
             i += 1
           end
         
-          mgf.puts("#{idmap[user1]} #{idmap[user2]} #{rest}")
+          mgf.puts("#{reverseidmap[user1]} #{reverseidmap[user2]} #{rest}")
         end
       end
     end
@@ -74,9 +72,9 @@ Class IdMapping
           name = line.split(';')[0]
           rest = line.slice(line.index(';', line.index(';') + 1)..-1)
         
-          namemap[reverseidmap[user]] = name
+          @namemap[reverseidmap[user]] = name
         
-          mrf.puts("#{name};#{idmap[user]};rest")
+          mrf.puts("#{name};#{reverseidmap[user]}#{rest}")
         end
       end
     end
@@ -84,19 +82,20 @@ Class IdMapping
     #save the mapping to a new file
     File.open(mappingfile, 'w') do |mf|
       reverseidmap.each do |oldid, newid|
-        idmap[newid] = oldid
-        idf.puts("#{newid} #{namemap[newid]} #{oldid}")
+        @idmap[newid] = oldid
+        mf.puts("#{newid} #{@namemap[newid]} #{oldid}")
       end
     end
   end
   
   def get_id(newid)
-    idmap[newid]
+    @idmap[newid]
   end
   
   def get_name(newid)
-    namemap[newid]
+    @namemap[newid]
   end
+end
   
 
 
