@@ -98,6 +98,6 @@ Class Mapping
     namemap[newid]
   end
   
-end
+
 
 
