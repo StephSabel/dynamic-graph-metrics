@@ -22,7 +22,7 @@ module DynamicGraphMetrics
   # get original id and name  
   elsif args[0] = "unmap"
     if map_instance
-      args[1] ? puts "#{map_instance.getid(args[1])} #{map_instance.getname(args[1])}" :  error(true)
+      args[1] ? puts("#{map_instance.getid(args[1])} #{map_instance.getname(args[1])}") :  error(true)
     else
       puts "mapping not initialized. please either"
       puts "   - create new mapping with \'newmap graphfile retweeterfile nameformappingfile\'"
