@@ -5,7 +5,7 @@
 # This script maps IDs from an interaction file to smaller numbers and creates a record of the mapping
 
 
-Class Mapping
+Class IdMapping
   
   idmap = {}
   namemap = {}
