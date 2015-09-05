@@ -77,6 +77,9 @@ Class Mapping
           namemap[reverseidmap[user]] = name
         
           mrf.puts("#{name};#{idmap[user]};rest")
+        end
+      end
+    end
   
     #save the mapping to a new file
     File.open(mappingfile, 'w') do |mf|
