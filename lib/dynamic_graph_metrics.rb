@@ -43,6 +43,16 @@ module DynamicGraphMetrics
     # split graph into snapshots of a specific duration
     elsif args[0] == "split"
       args[1] && args[2] && args[3] ? create_snapshots(args[1], args[2], args[3]) : error(true)
+      
+    # creates _PerUser and _total files for a sorted interaction file
+    elsif args[0] == "userpairs"
+      if args[1] 
+        peruser = args[2] || args[1] + "_peruser"
+        total = args[3] || args[1] + "_total"
+        user_pairs(args[1], peruser, total) 
+      else
+        error(true)
+      end
    
     # anything else is unknown 
     else 
