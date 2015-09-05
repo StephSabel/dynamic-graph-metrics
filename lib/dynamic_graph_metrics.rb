@@ -1,8 +1,8 @@
 #! /usr/bin/env ruby
 # Stephanie Embgen
-require "dynamic_graph_metrics/version"
-require "dynamic_graph_metrics/mapping"
-require "dynamic_graph_metrics/util"
+require "dynamic_graph_metrics/version.rb"
+require "dynamic_graph_metrics/mapping.rb"
+require "dynamic_graph_metrics/util.rb"
 
 module DynamicGraphMetrics
   
