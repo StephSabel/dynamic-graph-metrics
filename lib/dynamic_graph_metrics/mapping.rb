@@ -10,8 +10,8 @@ Class Mapping
   idmap = {}
   namemap = {}
 
-  def initialize(newmapping?, mappingfile, graphfile = nil, retweeterfile = nil)
-    if newmapping?
+  def initialize(newmapping, mappingfile, graphfile = nil, retweeterfile = nil)
+    if newmapping
       if (graphfile && retweeterfile)
         map_graph(graphfile, graphfile+"-mapped", retweeterfile, retweeterfile+"-mapped", mappingfile)
       else
