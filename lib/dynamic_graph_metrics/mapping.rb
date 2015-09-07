@@ -23,7 +23,7 @@ class Mapping
   # read a mapping from a mapping file and create hashes
   def read_mapping(mappingfile)
     File.open(mappingfile, 'r') do |mf|
-      while line = gf.gets
+      while line = mf.gets
         newid = line.split(' ')[0].to_i
         name = line.split(' ')[1]
         oldid = line.split(' ')[2].to_i
@@ -88,12 +88,8 @@ class Mapping
     end
   end
   
-  def get_id(newid)
-    @idmap[newid]
-  end
-  
-  def get_name(newid)
-    @namemap[newid]
+  def unmap(newid)
+    @idmap[newid] ? puts("#{@idmap[newid]} #{@namemap[newid]}") : puts("unknown id")
   end
 end
   
