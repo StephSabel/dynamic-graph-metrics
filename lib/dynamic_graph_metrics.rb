@@ -3,6 +3,7 @@
 require_relative "dynamic_graph_metrics/version.rb"
 require_relative "dynamic_graph_metrics/mapping.rb"
 require_relative "dynamic_graph_metrics/util.rb"
+require_relative "dynamic_graph_metrics/total_graph_metrics.rb"
 require 'yaml'
 
 module DynamicGraphMetrics
@@ -47,8 +48,8 @@ module DynamicGraphMetrics
         
         puts "Please enter the path to the mapping file you want to create"
         @settings["mappingfile"] = gets.chomp
-        
-        @mapping = Mapping.new(true, @settings["mappingfile"], @settings["sortedgraphfile"], @settings["retweeterfile"])
+         
+        @mapping = Mapping.new(true,@settings["mappingfile"], @settings["sortedgraphfile"], @settings["retweeterfile"])
         @settings["mapping"] = true
         
         @settings["sortedgraphfile"] = @settings["sortedgraphfile"] + "-mapped"
@@ -128,7 +129,6 @@ module DynamicGraphMetrics
         input == "quit" ? quit = true : @mapping.unmap(input.to_i)
       end
 
-    
     # split graph into snapshots of a specific duration
     elsif task == "split"
       puts "Please enter a file name for the split files"
@@ -136,10 +136,43 @@ module DynamicGraphMetrics
       puts "How long should one timeslice be? (in minutes)"
       minutes = gets.chomp
       create_snapshots(@settings["sortedgraphfile"], splitfilename, minutes)
+      
+    # do something to all files in a folder  
+    elsif task == "doall"
+      puts "Please enter the path to the folder containing the files"
+      folder = gets.chomp
+      files = Dir.entries(folder).drop(2)
+      
+      puts "What do you want to do to the files?"
+      action = gets.chomp
+      
+      #calculate _peruser and _total files from sorted interaction file
+      if action == "userpairs"
+        pufolder = folder + "_peruser"
+        Dir.mkdir(pufolder)
+        tfolder = folder + "_total"
+        Dir.mkdir(tfolder)
+        for file in files
+          user_pairs(folder+'/'+file, pufolder+'/'+file+"_peruser", tfolder+'/'+file+"_total")
+        end
+        
+      # calculate degree distribution
+      elsif action == "degdist"
+        File.open("degreedistributions.csv", 'w') do |rf|
+          for file in files
+            tgm = TotalGraphMetrics.new(folder+'/'+file)
+            rf.puts tgm.degree_distribution.join(',')
+          end
+        end
+        
+      else
+        puts "Unknown command"
+      end
    
     # anything else is unknown 
     else 
       puts "Unknown command"
+      help
     end
   end
 end

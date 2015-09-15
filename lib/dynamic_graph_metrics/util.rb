@@ -53,6 +53,7 @@ def user_pairs(originalfile, newfilePerUser, newfileTotal)
   
   File.open(originalfile, 'r') do |of|
     while line = of.gets 
+      line.force_encoding("ISO-8859-1").encode("utf-8", replace: nil)
       user1 = line.split(' ')[0].to_i
       user2 = line.split(' ')[1].to_i
       # add communication to array of each user
@@ -68,8 +69,10 @@ def user_pairs(originalfile, newfilePerUser, newfileTotal)
     File.open(newfilePerUser, 'w') do |nfpu|
       users.each do |user|
         userlist = communications[user]
+        
         # number of communications total for the user is length of array
         nft.puts "#{user} #{userlist.length}"
+        
         userlist.sort!
         i = 0
         thisuser = userlist[0]
@@ -79,7 +82,6 @@ def user_pairs(originalfile, newfilePerUser, newfileTotal)
             i += 1
           else
             # if new user is encountered, write old user to file
-            # !!! uncomment this if you don't want each pair twice
             unless thisuser < user
               nfpu.puts "#{user} #{thisuser} #{i}"
             end
@@ -88,7 +90,6 @@ def user_pairs(originalfile, newfilePerUser, newfileTotal)
           end
         end
         # write last encountered user to file
-        # !!! uncomment this if you don't want each pair twice
         unless thisuser < user
           nfpu.puts "#{user} #{thisuser} #{i}"
         end
