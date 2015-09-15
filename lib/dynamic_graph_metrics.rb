@@ -161,8 +161,8 @@ module DynamicGraphMetrics
         File.open("degreedistributions.csv", 'w') do |rf|
           for file in files
             tgm = TotalGraphMetrics.new(folder+'/'+file)
-            rf.print file+','
-            rf.puts tgm.degree_distribution.join(',')
+            rf.print file+';'
+            rf.puts tgm.degree_distribution.join(';')
           end
         end
         
