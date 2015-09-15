@@ -141,7 +141,7 @@ module DynamicGraphMetrics
     elsif task == "doall"
       puts "Please enter the path to the folder containing the files"
       folder = gets.chomp
-      files = Dir.entries(folder).drop(2)
+      files = Dir.entries(folder).select { |f| File.file?(f) }
       
       puts "What do you want to do to the files?"
       action = gets.chomp
