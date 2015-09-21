@@ -181,7 +181,6 @@ module DynamicGraphMetrics
       # calculate connected components  
       elsif action == "concom"
         connected_components(@settings["graphchi"],folder, files)
-      end
       
       else
         puts "Unknown command"
