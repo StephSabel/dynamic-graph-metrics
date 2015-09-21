@@ -6,30 +6,31 @@
 
 # Split a graph into snapshots of a specific duration
 
-def create_snapshots(sortedgraphfile, splitfilename, minutes)
-  timestepsize = minutes * 60000
-  lasttimesteptime = 0
+def create_snapshots(sortedgraphfile, splitfilefolder, hour = 4)
   filenumber = 0
-  splitfile = open(splitfilename + filenumber.to_s, 'w')
+  lasthour = 0
+  splitfilename = splitfilefolder + '/' + sortedgraphfile.split('/')[-1] + "_split"
+  splitfile = open(splitfilename + '00', 'w')
   
   File.open(sortedgraphfile, 'r') do |gf|
     while line = gf.gets
       
-      timestamp = line.split(" ")[2].to_i
+      timestamp = Time.at(line.split(" ")[2].to_i)
       
-      if timestamp - lasttimesteptime >= timestepsize
-        lasttimesteptime = timestamp
+      if timestamp.hour == 4 and lasthour == 3
         unless filenumber == 0
           splitfile.close
-          splitfile = open(splitfilename + filenumber.to_s, 'w')
+          splitfile = open(splitfilename + filenumber < 10 ? '0' : '' + filenumber.to_s, 'w')
         end
         filenumber += 1
       end
       
       splitfile.write(line)
+      lasthour = timestamp.hour
     end
   end
   splitfile.close
+  puts "File split to #{splitfilefolder}"
 end
 
 
@@ -98,8 +99,41 @@ def user_pairs(originalfile, newfilePerUser, newfileTotal)
   end
   puts "created files #{newfileTotal} and #{newfilePerUser}"
 end
+
+# calculates the connected components for a set of splitfiles using graphchi
+def connected_components(graphchi, splitfilefolder, files)
+  resultfiles = []
+  for file in files
+    graphchi_call = "#{graphchi}/bin/example_apps/connectedcomponents file #{folder}/#{file} filetype edgelist"
+    system(graphchi_call)
     
+    # deal with all the files graphchi creates
+    resultfiles.push (file + ".components")
+    File.delete(file + ".1.intervals", file + ".4B.vout", file + "_degs.bin", file + ".deltalog", file + ".numvertices")
+    system("rm #{file}.edata*")
+  end
   
-
-
+  results = []
+  default_array = Array.new(resultfiles.size*2, "")
+  
+  for file in resultfiles
+    File.open(folder + '/' + file, 'r') do |f|
+      i = 0
+      while line = f.gets
+        ary = results[i] || default_array
+        ary[i*2] = line.split(" ")[0]
+        ary[i*2 + 1] = line.split(" ")[1]
+        i += 1
+      end
+    end
+  end
+      
+  File.open(connectedcomponents.csv, 'w') do |rf|
+    results.each do |ary|
+      rf.puts ary.join(";")
+    end
+  end
+  
+  puts "Connected components written to connectedcomponents.csv"
+end
 

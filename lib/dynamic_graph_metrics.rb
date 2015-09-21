@@ -92,7 +92,7 @@ module DynamicGraphMetrics
     end
     
     puts "Please enter the path to your graphchi installation"
-    @settings["graphchi"] = gets.chomp
+    @settings["graphchi"] = gets.chomp("/")
     
   end
         
@@ -131,17 +131,19 @@ module DynamicGraphMetrics
 
     # split graph into snapshots of a specific duration
     elsif task == "split"
-      puts "Please enter a file name for the split files"
-      splitfilename = gets.chomp
-      puts "How long should one timeslice be? (in minutes)"
-      minutes = gets.chomp
-      create_snapshots(@settings["sortedgraphfile"], splitfilename, minutes)
+      puts "Please enter a folder name for the split files"
+      folder = gets.chomp('/')
+      @settings[splitfiles] = folder
+      puts "At what hour (in GMT) should the days be split?"
+      time = gets.chomp
+      create_snapshots(@settings["sortedgraphfile"], splitfilename, time)
       
     # do something to all files in a folder  
     elsif task == "doall"
       puts "Please enter the path to the folder containing the files"
-      folder = gets.chomp
+      folder = gets.chomp('/')
       files = Dir.entries(folder).select { |f| File.file?(folder+'/'+f) }
+      files.sort
       
       puts "What do you want to do to the files?"
       action = gets.chomp
@@ -159,13 +161,28 @@ module DynamicGraphMetrics
       # calculate degree distribution
       elsif action == "degdist"
         File.open("degreedistributions.csv", 'w') do |rf|
+          rf.puts "Filename;Density;Degree Distribution"
           for file in files
             tgm = TotalGraphMetrics.new(folder+'/'+file)
-            rf.print file+';'
-            rf.puts tgm.degree_distribution.join(';')
+            keys = []
+            values = []
+            density = tgm.density
+            tgm.degree_distribution.each do |key, value| 
+              keys.push key
+              values.push value
+            end
+            rf.puts file+';'+ density + ';' +keys.join(';')
+            rf.puts ';;'+values.join(';')
+            rf.puts ''
           end
         end
+        puts "Wrote density and degree distribution to degreedistributions.csv"
         
+      # calculate connected components  
+      elsif action == "concom"
+        connected_components(@settings["graphchi"],folder, files)
+      end
+      
       else
         puts "Unknown command"
       end
