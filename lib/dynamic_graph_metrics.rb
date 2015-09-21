@@ -92,7 +92,7 @@ module DynamicGraphMetrics
     end
     
     puts "Please enter the path to your graphchi installation"
-    @settings["graphchi"] = gets.chomp("/")
+    @settings["graphchi"] = gets.chomp.chomp("/")
     
   end
         
@@ -141,7 +141,7 @@ module DynamicGraphMetrics
     # do something to all files in a folder  
     elsif task == "doall"
       puts "Please enter the path to the folder containing the files"
-      folder = gets.chomp('/')
+      folder = gets.chomp.chomp('/')
       files = Dir.entries(folder).select { |f| File.file?(folder+'/'+f) }
       files.sort
       
