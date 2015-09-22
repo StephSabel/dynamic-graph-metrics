@@ -123,17 +123,17 @@ def connected_components(graphchi, folder, files)
   system("rm #{folder}/*.numvertices")
   
   results = []
-  default_array = Array.new(resultfiles.size*2, "")
   
   i=0
   for file in resultfiles
     File.open(folder + '/' + file, 'r') do |f|
       j = 0
       while line = f.gets
-        ary = results[j] || default_array
-        ary[i*2] = line.split(" ")[0]
-        ary[i*2 + 1] = line.split(" ")[1]
-	      results[j] = ary
+        line.chomp!
+        ary = results[j] || Array.new(resultfiles.size*2, "")
+        ary[i*2] = line.split(',')[0]
+        ary[i*2 + 1] = line.split(',')[1]
+        results[j] = ary
         j += 1
       end
     end
@@ -146,7 +146,7 @@ def connected_components(graphchi, folder, files)
     end
   end
 
-  # system("rm #{folder}/*.components")
+  system("rm #{folder}/*.components")
   
   puts "Connected components written to connectedcomponents.csv"
 end
