@@ -167,8 +167,7 @@ module DynamicGraphMetrics
             keys = []
             values = []
             density = tgm.density
-            degdist = tgm.degree_distribution
-            degdist.sort_by {|key, value| key }
+            degdist = tgm.degree_distribution.sort_by {|key, value| key }
             degdist.each do |key, value| 
               keys.push key
               values.push value
