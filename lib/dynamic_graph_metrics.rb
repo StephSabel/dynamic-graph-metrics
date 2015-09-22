@@ -143,7 +143,7 @@ module DynamicGraphMetrics
       puts "Please enter the path to the folder containing the files"
       folder = gets.chomp.chomp('/')
       files = Dir.entries(folder).select { |f| File.file?(folder+'/'+f) }
-      files.sort
+      files.sort!
       
       puts "What do you want to do to the files?"
       action = gets.chomp
@@ -167,7 +167,9 @@ module DynamicGraphMetrics
             keys = []
             values = []
             density = tgm.density
-            tgm.degree_distribution.each do |key, value| 
+            degdist = tgm.degree_distribution
+            degdist.sort_by {|key, value| key }
+            degdist.each do |key, value| 
               keys.push key
               values.push value
             end
