@@ -133,7 +133,7 @@ def connected_components(graphchi, folder, files)
         ary = results[j] || default_array
         ary[i*2] = line.split(" ")[0]
         ary[i*2 + 1] = line.split(" ")[1]
-	results[j] = ary
+	      results[j] = ary
         j += 1
       end
     end
@@ -146,7 +146,7 @@ def connected_components(graphchi, folder, files)
     end
   end
 
-  system("rm #{folder}/*.components")
+  # system("rm #{folder}/*.components")
   
   puts "Connected components written to connectedcomponents.csv"
 end
