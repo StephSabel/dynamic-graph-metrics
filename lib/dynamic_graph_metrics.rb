@@ -132,11 +132,11 @@ module DynamicGraphMetrics
     # split graph into snapshots of a specific duration
     elsif task == "split"
       puts "Please enter a folder name for the split files"
-      folder = gets.chomp('/')
-      @settings[splitfiles] = folder
+      folder = gets.chomp.chomp('/')
+      @settings["splitfiles"] = folder
       puts "At what hour (in GMT) should the days be split?"
-      time = gets.chomp
-      create_snapshots(@settings["sortedgraphfile"], splitfilename, time)
+      time = gets.chomp.to_i
+      create_snapshots(@settings["sortedgraphfile"], folder, time)
       
     # do something to all files in a folder  
     elsif task == "doall"
@@ -171,7 +171,7 @@ module DynamicGraphMetrics
               keys.push key
               values.push value
             end
-            rf.puts file+';'+ density + ';' +keys.join(';')
+            rf.puts file+';'+ density.to_s + ';' +keys.join(';')
             rf.puts ';;'+values.join(';')
             rf.puts ''
           end

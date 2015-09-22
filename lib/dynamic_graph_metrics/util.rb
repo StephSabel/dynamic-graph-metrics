@@ -8,7 +8,8 @@
 
 def create_snapshots(sortedgraphfile, splitfilefolder, hour = 4)
   filenumber = 0
-  lasthour = 0
+  timeoffset = hour * 3600
+  lasttimestamp = Time.at(timeoffset + 1)
   splitfilename = splitfilefolder + '/' + sortedgraphfile.split('/')[-1] + "_split"
   splitfile = open(splitfilename + '00', 'w')
   
@@ -16,17 +17,19 @@ def create_snapshots(sortedgraphfile, splitfilefolder, hour = 4)
     while line = gf.gets
       
       timestamp = Time.at(line.split(" ")[2].to_i)
+      timeos = timestamp - timeoffset
+      lasttimeos = lasttimestamp - timeoffset
       
-      if timestamp.hour == 4 and lasthour == 3
+      unless timeos.yday == lasttimeos.yday and timeos.year == lasttimeos.year
         unless filenumber == 0
           splitfile.close
-          splitfile = open(splitfilename + filenumber < 10 ? '0' : '' + filenumber.to_s, 'w')
+          splitfile = open(splitfilename + (filenumber < 10 ? '0' : '') + filenumber.to_s, 'w')
         end
         filenumber += 1
       end
       
       splitfile.write(line)
-      lasthour = timestamp.hour
+      lasttimestamp = timestamp
     end
   end
   splitfile.close
@@ -101,38 +104,49 @@ def user_pairs(originalfile, newfilePerUser, newfileTotal)
 end
 
 # calculates the connected components for a set of splitfiles using graphchi
-def connected_components(graphchi, splitfilefolder, files)
+def connected_components(graphchi, folder, files)
   resultfiles = []
   for file in files
     graphchi_call = "#{graphchi}/bin/example_apps/connectedcomponents file #{folder}/#{file} filetype edgelist"
     system(graphchi_call)
     
-    # deal with all the files graphchi creates
+    # save results
     resultfiles.push (file + ".components")
-    File.delete(file + ".1.intervals", file + ".4B.vout", file + "_degs.bin", file + ".deltalog", file + ".numvertices")
-    system("rm #{file}.edata*")
   end
+
+  #deal with the shitton of files that graphchi creates
+  system("rm -r #{folder}/*.edata*")
+  system("rm #{folder}/*.1.intervals")
+  system("rm #{folder}/*.4B.vout")
+  system("rm #{folder}/*degs.bin")
+  system("rm #{folder}/*.deltalog")
+  system("rm #{folder}/*.numvertices")
   
   results = []
   default_array = Array.new(resultfiles.size*2, "")
   
+  i=0
   for file in resultfiles
     File.open(folder + '/' + file, 'r') do |f|
-      i = 0
+      j = 0
       while line = f.gets
-        ary = results[i] || default_array
+        ary = results[j] || default_array
         ary[i*2] = line.split(" ")[0]
         ary[i*2 + 1] = line.split(" ")[1]
-        i += 1
+	results[j] = ary
+        j += 1
       end
     end
+    i += 1
   end
       
-  File.open(connectedcomponents.csv, 'w') do |rf|
+  File.open("connectedcomponents.csv", 'w') do |rf|
     results.each do |ary|
       rf.puts ary.join(";")
     end
   end
+
+  system("rm #{folder}/*.components")
   
   puts "Connected components written to connectedcomponents.csv"
 end

@@ -27,7 +27,11 @@ class TotalGraphMetrics
   
   # calculate graph density
   def density
-    @edgenumber / (@usernumber * (@usernumber - 1))
+    if @usernumber > 1
+      @edgenumber / (@usernumber * (@usernumber - 1))  
+    else
+      -1
+    end
   end
   
   # histogram over the node degrees
