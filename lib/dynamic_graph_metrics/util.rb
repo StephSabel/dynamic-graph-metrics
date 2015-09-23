@@ -151,3 +151,20 @@ def connected_components(graphchi, folder, files)
   puts "Connected components written to connectedcomponents.csv"
 end
 
+# transpose an array of arrays
+# inspired by http://www.matthewbass.com/2009/05/02/how-to-safely-transpose-ruby-arrays/
+def transpose_arrays(matrix)
+  maxsize = matrix.max_by{|a| a.size}.size
+  result = []
+  
+  maxsize.times do |i|
+    result[i] = Array.new(matrix.size,0)
+    matrix.each_with_index {|a, j| result[i][j] = a[i]}
+  end
+  
+  result
+end
+  
+  
+  
+  

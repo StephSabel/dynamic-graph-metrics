@@ -28,7 +28,7 @@ class TotalGraphMetrics
   # calculate graph density
   def density
     if @usernumber > 1
-      @edgenumber / (@usernumber * (@usernumber - 1))  
+      @edgenumber.to_f / (@usernumber.to_f * (@usernumber.to_f - 1))  
     else
       -1
     end
@@ -36,7 +36,7 @@ class TotalGraphMetrics
   
   # histogram over the node degrees
   def degree_distribution
-    histogram = Hash.new(0)
+    histogram = Array.new(@highestdegree + 1, 0)
     @interactions.each_value {|value| histogram[value] += 1}
     return histogram
   end

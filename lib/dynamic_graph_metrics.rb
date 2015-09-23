@@ -138,6 +138,39 @@ module DynamicGraphMetrics
       time = gets.chomp.to_i
       create_snapshots(@settings["sortedgraphfile"], folder, time)
       
+    # calculate degree distribution
+    elsif task == "degdist"
+      histograms = []
+      filetitles = []
+      folder = @settings["splitfiles_total"]
+      files = Dir.entries(folder).select { |f| File.file?(folder+'/'+f) }
+      files.sort!
+        
+      # calculate all histograms
+      for file in files
+        tgm = TotalGraphMetrics.new(folder+'/'+file)
+        histograms << tgm.degree_distribution
+        filetitles << file[-2..-1]
+      end
+      
+      histograms = transpose_arrays(histograms)
+        
+      File.open("degreedistributions.csv", 'w') do |rf|
+        # name the columns
+        rf.puts "Degree;" + filetitles.join(';')
+        
+        # enter data
+        histograms.each_with_index {|data, i| rf.puts "#{i};#{data.join(';')}"}
+      end
+      puts "Wrote degree distribution to degreedistributions.csv"
+      
+    # calculate connected components  
+    elsif task == "concom"
+      folder = @settings["splitfiles_peruser"]
+      files = Dir.entries(folder).select { |f| File.file?(folder+'/'+f) }
+      
+      connected_components(@settings["graphchi"],folder, files)
+      
     # do something to all files in a folder  
     elsif task == "doall"
       puts "Please enter the path to the folder containing the files"
@@ -151,37 +184,14 @@ module DynamicGraphMetrics
       #calculate _peruser and _total files from sorted interaction file
       if action == "userpairs"
         pufolder = folder + "_peruser"
+        @settings["splitfiles_peruser"] = pufolder
         Dir.mkdir(pufolder)
         tfolder = folder + "_total"
+        @settings["splitfiles_total"] = tfolder
         Dir.mkdir(tfolder)
         for file in files
-          user_pairs(folder+'/'+file, pufolder+'/'+file+"_peruser", tfolder+'/'+file+"_total")
+          user_pairs(folder+'/'+file, pufolder+'/'+file.insert(-3,"_peruser"), tfolder+'/'+file.insert(-3,"_total"))
         end
-        
-      # calculate degree distribution
-      elsif action == "degdist"
-        File.open("degreedistributions.csv", 'w') do |rf|
-          rf.puts "Filename;Density;Degree Distribution"
-          for file in files
-            tgm = TotalGraphMetrics.new(folder+'/'+file)
-            keys = []
-            values = []
-            density = tgm.density
-            degdist = tgm.degree_distribution.sort_by {|key, value| key }
-            degdist.each do |key, value| 
-              keys.push key
-              values.push value
-            end
-            rf.puts file+';'+ density.to_s + ';' +keys.join(';')
-            rf.puts ';;'+values.join(';')
-            rf.puts ''
-          end
-        end
-        puts "Wrote density and degree distribution to degreedistributions.csv"
-        
-      # calculate connected components  
-      elsif action == "concom"
-        connected_components(@settings["graphchi"],folder, files)
       
       else
         puts "Unknown command"
