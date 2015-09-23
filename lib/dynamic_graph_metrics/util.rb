@@ -16,7 +16,7 @@ def create_snapshots(sortedgraphfile, splitfilefolder, hour = 4)
   File.open(sortedgraphfile, 'r') do |gf|
     while line = gf.gets
       
-      timestamp = Time.at(line.split(" ")[2].to_i)
+      timestamp = Time.at(line.split(" ")[2].to_i / 1000)
       timeos = timestamp - timeoffset
       lasttimeos = lasttimestamp - timeoffset
       
