@@ -191,7 +191,7 @@ module DynamicGraphMetrics
         @settings["splitfiles_mm"] = mmfolder
         Dir.mkdir(mmfolder)
         for file in files
-          user_pairs(folder+'/'+file, pufolder+'/'+file.insert(-3,"_peruser"), tfolder+'/'+file.gsub("peruser","total"), mmfolder+'/'+file.gsub("total","mm"))
+          user_pairs(folder+'/'+file, pufolder+'/'+file.insert(-3,"_peruser"), tfolder+'/'+file.gsub!("peruser","total"), mmfolder+'/'+file.gsub!("total","mm"))
         end
       
       else
