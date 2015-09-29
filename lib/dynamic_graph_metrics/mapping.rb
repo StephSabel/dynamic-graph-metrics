@@ -37,8 +37,8 @@ class Mapping
   # create a new mapping from a graph file and a retweeter file
   def map_graph(graphfile, mappedgraphfile, retweeterfile, mappedretweeterfile, mappingfile)
   
-    # start new ids from 0
-    i = 0
+    # start new ids from 1 (required by matrix market notation)
+    i = 1
     # hash for reverse id'ing
     reverseidmap = {}
   

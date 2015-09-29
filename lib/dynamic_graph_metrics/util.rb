@@ -107,7 +107,7 @@ def user_pairs(originalfile, newfilePerUser, newfileTotal, newfileMM)
   File.open(newfileMM, 'w') do |nfmm|
       # Matrix Market notation for _peruser file
       nfmm.puts "%%MatrixMarket matrix coordinate real general"
-      # dimensions of the matrix are the number of users, entries are the number of pairs
+      # dimensions of the matrix are the highest user id, entries are the number of pairs
       nfmm.puts "#{users[-1]} #{users[-1]} #{pairs}"
       File.open(newfilePerUser, 'r') do |nfpu|
         while line = nfpu.gets
