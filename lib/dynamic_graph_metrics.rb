@@ -79,14 +79,11 @@ module DynamicGraphMetrics
       answer = gets.chomp
       
       if answer == "y"
+        @settings["peruserfile"] = @settings["sortedgraphfile"] + "_peruser"
+        @settings["totalfile"] = @settings["sortedgraphfile"] + "_total"
+        @settings["mmfile"] = @settings["sortedgraphfile"] + "_mm"
         
-        puts "Please enter a path to the _peruser file you want to create"
-        @settings["peruserfile"] = gets.chomp
-        
-        puts "Please enter the path to the _total file you want to create"
-        @settings["totalfile"] = gets.chomp
-        
-        user_pairs(@settings["sortedgraphfile"], @settings["peruserfile"], @settings["totalfile"])
+        user_pairs(@settings["sortedgraphfile"], @settings["peruserfile"], @settings["totalfile"], @settings["mmfile"])
         
       end   
     end
@@ -157,10 +154,10 @@ module DynamicGraphMetrics
         
       File.open("degreedistributions.csv", 'w') do |rf|
         # name the columns
-        rf.puts "Degree;" + filetitles.join(';')
+        rf.puts "Degree;Day" + filetitles.join(';Day')
         
         # enter data
-        histograms.each_with_index {|data, i| rf.puts "#{i};#{data.join(';')}"}
+        histograms.each_with_index {|data, i| rf.puts "#{i+1};#{data.join(';')}"}
       end
       puts "Wrote degree distribution to degreedistributions.csv"
       
@@ -185,12 +182,16 @@ module DynamicGraphMetrics
       if action == "userpairs"
         pufolder = folder + "_peruser"
         @settings["splitfiles_peruser"] = pufolder
+        
         Dir.mkdir(pufolder)
         tfolder = folder + "_total"
         @settings["splitfiles_total"] = tfolder
         Dir.mkdir(tfolder)
+        mmfolder = folder + "_mm"
+        @settings["splitfiles_mm"] = mmfolder
+        Dir.mkdir(mmfolder)
         for file in files
-          user_pairs(folder+'/'+file, pufolder+'/'+file.insert(-3,"_peruser"), tfolder+'/'+file.insert(-3,"_total"))
+          user_pairs(folder+'/'+file, pufolder+'/'+file.insert(-3,"_peruser"), tfolder+'/'+file.gsub("peruser","total"), mmfolder+'/'+file.gsub("total","mm"))
         end
       
       else

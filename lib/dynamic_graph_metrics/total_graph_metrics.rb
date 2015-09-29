@@ -36,8 +36,8 @@ class TotalGraphMetrics
   
   # histogram over the node degrees
   def degree_distribution
-    histogram = Array.new(@highestdegree + 1, 0)
-    @interactions.each_value {|value| histogram[value] += 1}
+    histogram = Array.new(@highestdegree, 0)
+    @interactions.each_value {|value| histogram[value - 1] += 1}
     return histogram
   end
 end

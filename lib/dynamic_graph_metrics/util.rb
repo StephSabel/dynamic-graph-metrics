@@ -50,7 +50,7 @@ end
 # if if only one direction of the communication should be included in PerUser, 
 # uncomment the two 'unless'-controls
 
-def user_pairs(originalfile, newfilePerUser, newfileTotal)
+def user_pairs(originalfile, newfilePerUser, newfileTotal, newfileMM)
   
   # Hash of Arrays to store users communicated with for each user
   communications = Hash.new{|hash, key| hash[key] = Array.new}
@@ -68,6 +68,7 @@ def user_pairs(originalfile, newfilePerUser, newfileTotal)
   end
   
   users = communications.keys.sort
+  pairs = 0
   
   File.open(newfileTotal, 'w') do |nft|
     File.open(newfilePerUser, 'w') do |nfpu|
@@ -88,6 +89,7 @@ def user_pairs(originalfile, newfilePerUser, newfileTotal)
             # if new user is encountered, write old user to file
             unless thisuser < user
               nfpu.puts "#{user} #{thisuser} #{i}"
+              pairs += 1
             end
             i = 1
             thisuser = u
@@ -96,11 +98,25 @@ def user_pairs(originalfile, newfilePerUser, newfileTotal)
         # write last encountered user to file
         unless thisuser < user
           nfpu.puts "#{user} #{thisuser} #{i}"
+          pairs += 1
         end
       end
     end
   end
-  puts "created files #{newfileTotal} and #{newfilePerUser}"
+  
+  File.open(newfileMM, 'w') do |nfmm|
+      # Matrix Market notation for _peruser file
+      nfmm.puts "%%MatrixMarket matrix coordinate real general"
+      # dimensions of the matrix are the number of users, entries are the number of pairs
+      nfmm.puts "#{users.size} #{users.size} #{pairs}"
+      File.open(newfilePerUser, 'r') do |nfpu|
+        while line = nfpu.gets
+          nfmm.puts line
+        end
+      end
+    end
+  
+  puts "created files #{newfileTotal}, #{newfilePerUser} and #{newfileMM}"
 end
 
 # calculates the connected components for a set of splitfiles using graphchi
@@ -159,12 +175,11 @@ def transpose_arrays(matrix)
   
   maxsize.times do |i|
     result[i] = Array.new(matrix.size,0)
-    matrix.each_with_index {|a, j| result[i][j] = a[i]}
+    matrix.each_with_index {|a, j| result[i][j] = a[i] || 0}
   end
   
   result
 end
   
-  
-  
+
   
