@@ -175,7 +175,7 @@ module DynamicGraphMetrics
       folder = @settings["splitfiles_peruser"]
       files = Dir.entries(folder).select { |f| File.file?(folder+'/'+f) }
       
-      files.each {|file| do_graphchi("#{@settings["graphchi"]}/bin/example_apps/connectedcomponents",file)}
+      files.each {|file| do_graphchi("#{@settings["graphchi"]}/bin/example_apps/connectedcomponents",folder,file)}
       Dir.mkdir("#{folder}/concomponents") unless File.exists?("#{folder}/concomponents")
       system("mv #{folder}/*.concomponents #{folder}/concomponents")
       
