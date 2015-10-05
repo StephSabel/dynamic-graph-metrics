@@ -13,6 +13,7 @@ class TotalGraphMetrics
     
     File.open(totalfile, 'r') do |f|
       while line = f.gets
+        line.force_encoding("ISO-8859-1").encode("utf-8", replace: nil)
         user = line.split(' ')[0].to_i
         edges = line.split(' ')[1].to_i
         

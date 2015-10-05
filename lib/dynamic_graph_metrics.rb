@@ -133,6 +133,7 @@ module DynamicGraphMetrics
       @settings["splitfiles"] = folder
       puts "At what hour (in GMT) should the days be split?"
       time = gets.chomp.to_i
+      Dir.mkdir(folder) unless File.exists?(folder)
       create_snapshots(@settings["sortedgraphfile"], folder, time)
       
     # calculate degree distribution
@@ -142,16 +143,19 @@ module DynamicGraphMetrics
       folder = @settings["splitfiles_total"]
       files = Dir.entries(folder).select { |f| File.file?(folder+'/'+f) }
       files.sort!
+      densities = []
         
       # calculate all histograms
       for file in files
         tgm = TotalGraphMetrics.new(folder+'/'+file)
         histograms << tgm.degree_distribution
         filetitles << file[-2..-1]
+        densities << tgm.density
       end
       
       histograms = transpose_arrays(histograms)
         
+      # write everything to file  
       File.open("degreedistributions.csv", 'w') do |rf|
         # name the columns
         rf.puts "Degree;Day" + filetitles.join(';Day')
@@ -161,12 +165,28 @@ module DynamicGraphMetrics
       end
       puts "Wrote degree distribution to degreedistributions.csv"
       
+      #write densities to file
+      File.open("densities", 'w') do |d|
+        densities.each_with_index {|den, i| d.puts "Day#{filetitles[i]} #{den}"}
+      end
+      
     # calculate connected components  
     elsif task == "concom"
       folder = @settings["splitfiles_peruser"]
       files = Dir.entries(folder).select { |f| File.file?(folder+'/'+f) }
       
-      connected_components(@settings["graphchi"],folder, files)
+      files.each {|file| do_graphchi("#{@settings["graphchi"]}/bin/example_apps/connectedcomponents",file)}
+      Dir.mkdir("#{folder}/concomponents") unless File.exists?("#{folder}/concomponents")
+      system("mv #{folder}/*.concomponents #{folder}/concomponents")
+      
+    # calculate connected components  
+    elsif task == "communities"
+      folder = @settings["splitfiles_peruser"]
+      files = Dir.entries(folder).select { |f| File.file?(folder+'/'+f) }
+
+      files.each {|file| do_graphchi("#{@settings["graphchi"]}/bin/example_apps/communitydetection",file)}
+      Dir.mkdir("#{folder}/communities") unless File.exists?("#{folder}/communities")
+      system("mv #{folder}/*.communities #{folder}/communities")
       
     # do something to all files in a folder  
     elsif task == "doall"
@@ -183,13 +203,13 @@ module DynamicGraphMetrics
         pufolder = folder + "_peruser"
         @settings["splitfiles_peruser"] = pufolder
         
-        Dir.mkdir(pufolder)
+        Dir.mkdir(pufolder) unless File.exists?(pufolder)
         tfolder = folder + "_total"
         @settings["splitfiles_total"] = tfolder
-        Dir.mkdir(tfolder)
+        Dir.mkdir(tfolder) unless File.exists?(tfolder)
         mmfolder = folder + "_mm"
         @settings["splitfiles_mm"] = mmfolder
-        Dir.mkdir(mmfolder)
+        Dir.mkdir(mmfolder) unless File.exists?(mmfolder)
         for file in files
           user_pairs(folder+'/'+file, pufolder+'/'+file.insert(-3,"_peruser"), tfolder+'/'+file.gsub!("peruser","total"), mmfolder+'/'+file.gsub!("total","mm"))
         end

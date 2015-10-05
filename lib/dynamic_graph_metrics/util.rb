@@ -119,6 +119,21 @@ def user_pairs(originalfile, newfilePerUser, newfileTotal, newfileMM)
   puts "created files #{newfileTotal}, #{newfilePerUser} and #{newfileMM}"
 end
 
+# calls a graphchi function
+def do_graphchi(graphchi_f, file)
+  graphchi_call = "#{graphchi_f} file #{file} filetype edgelist"
+  system(graphchi_call)
+  
+  #deal with the shitton of files that graphchi creates
+  system("rm -r #{folder}/*.edata*")
+  system("rm #{folder}/*.1.intervals")
+  system("rm #{folder}/*.4B.vout")
+  system("rm #{folder}/*degs.bin")
+  system("rm #{folder}/*.deltalog")
+  system("rm #{folder}/*.numvertices")
+  system("rm #{folder}/*.components")
+end
+
 # calculates the connected components for a set of splitfiles using graphchi
 def connected_components(graphchi, folder, files)
   resultfiles = []
