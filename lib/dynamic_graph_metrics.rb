@@ -184,7 +184,7 @@ module DynamicGraphMetrics
       folder = @settings["splitfiles_peruser"]
       files = Dir.entries(folder).select { |f| File.file?(folder+'/'+f) }
 
-      files.each {|file| do_graphchi("#{@settings["graphchi"]}/bin/example_apps/communitydetection",file)}
+      files.each {|file| do_graphchi("#{@settings["graphchi"]}/bin/example_apps/communitydetection",folder,file)}
       Dir.mkdir("#{folder}/communities") unless File.exists?("#{folder}/communities")
       system("mv #{folder}/*.communities #{folder}/communities")
       

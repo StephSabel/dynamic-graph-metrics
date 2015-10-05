@@ -120,8 +120,8 @@ def user_pairs(originalfile, newfilePerUser, newfileTotal, newfileMM)
 end
 
 # calls a graphchi function
-def do_graphchi(graphchi_f, file)
-  graphchi_call = "#{graphchi_f} file #{file} filetype edgelist"
+def do_graphchi(graphchi_f, folder, file)
+  graphchi_call = "#{graphchi_f} file #{folder}/#{file} filetype edgelist"
   system(graphchi_call)
   
   #deal with the shitton of files that graphchi creates
