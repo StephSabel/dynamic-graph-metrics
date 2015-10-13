@@ -3,6 +3,8 @@
 
 # Collection of useful functions
 
+require "set"
+
 
 # Split a graph into snapshots of a specific duration
 
@@ -196,5 +198,43 @@ def transpose_arrays(matrix)
   result
 end
   
+# compare all communities/connected components of two days that have at least n users
+# outputs list of community/concom pairs with jaccard coefficient > x
+def compare_components(files, folder, n = 10, x = 0.05)
+  
+  days = []
+  
+  # read all files
+  files.each do |file|
+    File.open(folder+'/'+file, 'r') do |df|
+      daycom = Hash.new{|hash, key| hash[key] = Set.new}
+      while line = df.gets
+        daycom[line.split(" ")[1]].add(line.split(" ")[0].to_i)
+      end
+      daycom.delete_if {|key, value| value.size < n}
+      days << daycom
+    end
+  end
+  
+  # intervals start at 1 and end at days.size - 1
+  # we need days.size - 2 iterations
+  iterations = days.size - 1
+  intervals = Array.new(iterations) {Array.new}
+  iterations.times do |i|
+    #interval size is i + 1. number of intervals is iterations - i
+    (iterations - i).times do |j|
+      days[j].each do |comID1, userset1| 
+        days[j + i + 1].each do |comID2, userset2|
+          inter = userset1 & userset2
+          jaccard = inter.size.to_f / (userset1.size + userset2.size - inter.size)
+          if jaccard >= x
+            intervals[i] << [comID1, comID2,jaccard]
+          end
+        end
+      end
+    end
+  end
+  return intervals
+end
 
   

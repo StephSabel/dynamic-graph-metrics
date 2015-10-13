@@ -179,14 +179,26 @@ module DynamicGraphMetrics
       Dir.mkdir("#{folder}/concomponents") unless File.exists?("#{folder}/concomponents")
       system("mv #{folder}/*.concomponents #{folder}/concomponents")
       
-    # calculate connected components  
+    # calculate communities 
     elsif task == "communities"
       folder = @settings["splitfiles_peruser"]
       files = Dir.entries(folder).select { |f| File.file?(folder+'/'+f) }
+      comfolder = "#{folder}/communities"
+      @settings["communities"] = comfolder
 
       files.each {|file| do_graphchi("#{@settings["graphchi"]}/bin/example_apps/communitydetection",folder,file)}
-      Dir.mkdir("#{folder}/communities") unless File.exists?("#{folder}/communities")
-      system("mv #{folder}/*.communities #{folder}/communities")
+      Dir.mkdir(comfolder) unless File.exists?(comfolder)
+      system("mv #{folder}/*.communities #{comfolder}")
+      
+    # compare communities
+    elsif task == "comparecommunities"
+      folder = @settings["communities"]
+      files = Dir.entries(folder).select { |f| File.file?(folder+'/'+f) }
+      files.sort!
+      intervals = compare_components(files, folder, 3, 0.2)
+        # to do: do something with the output
+      puts intervals
+      
       
     # do something to all files in a folder  
     elsif task == "doall"
