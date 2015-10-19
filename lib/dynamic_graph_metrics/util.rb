@@ -4,6 +4,8 @@
 # Collection of useful functions
 
 require "set"
+require_relative "component.rb"
+require_relative "component_timeline.rb"
 
 
 # Split a graph into snapshots of a specific duration
@@ -200,41 +202,77 @@ end
   
 # compare all communities/connected components of two days that have at least n users
 # outputs list of community/concom pairs with jaccard coefficient > x
-def compare_components(files, folder, n = 10, x = 0.05)
+def compare_components(files, folder, n = 3, x = 0.3)
   
   days = []
+  fronts = Set.new
+  timelines = Set.new
+  births = 0
+  splitevents = 0
+  mergeevents = 0
   
   # read all files
-  files.each do |file|
+  files.each_with_index do |file, i|
     File.open(folder+'/'+file, 'r') do |df|
-      daycom = Hash.new{|hash, key| hash[key] = Set.new}
+      # read all communities
+      daycom = Hash.new{|hash, key| hash[key] = Component.new(i, key)}
       while line = df.gets
-        daycom[line.split(" ")[1]].add(line.split(" ")[0].to_i)
+        daycom[line.split(" ")[1]].add_user(line.split(" ")[0].to_i)
       end
       daycom.delete_if {|key, value| value.size < n}
       days << daycom
-    end
-  end
-  
-  # intervals start at 1 and end at days.size - 1
-  # we need days.size - 2 iterations
-  iterations = days.size - 1
-  intervals = Array.new(iterations) {Array.new}
-  iterations.times do |i|
-    #interval size is i + 1. number of intervals is iterations - i
-    (iterations - i).times do |j|
-      days[j].each do |comID1, userset1| 
-        days[j + i + 1].each do |comID2, userset2|
-          inter = userset1 & userset2
-          jaccard = inter.size.to_f / (userset1.size + userset2.size - inter.size)
+      
+      # iterate through fronts to find matches
+      matches = Hash.new{|hash,key| hash[key] = Array.new}
+      newfronts = Set.new
+      fronts.each do |frontcom|
+        matchfound = false
+        days[i].each_value do |newcom|
+          inter = frontcom.get_set() & newcom.get_set()
+          jaccard = inter.size.to_f / (frontcom.get_set().size + newcom.get_set().size - inter.size)
           if jaccard >= x
-            intervals[i] << [comID1, comID2,jaccard]
+            splitevent += 1 if matchfound
+            matches[newcom.get_ID] << frontcom
+            matchfound = true
           end
         end
+        newfronts.add(frontcom) unless matchfound
       end
+      
+      days[i].each_value do |newcom|
+        frontmatches = matches[newcom.get_ID]
+        mergeevent += 1 if frontmatches.size > 1
+        #  if match found: extend timelines, add to fronts
+          if frontmatches.size >= 1
+            frontmatches.each do |frontcom|
+              if frontcom.matched?
+                frontcom.get_front_of.each do |timeline|
+                  timelines.add(timeline.dup.pop.extend(newcom))
+                end
+              else
+                frontcom.get_front_of.each do |timeline|
+                  timelines.add(timeline.extend(newcom))
+                  frontcom.match
+                end
+              end
+            end
+      
+        # if no match found: create new timeline
+          else
+            timelines.add(ComponentTimeline.new(newcom))
+            births += 1
+          end
+        newfronts.add(newcom)
+      end
+      
+      fronts = newfronts
+
     end
   end
-  return intervals
+  puts "Births: #{births}"
+  puts "Split Events: #{splitevents}"
+  puts "Merge Events: #{mergeevents}"
+  puts "Timelines: #{timelines.size}"
 end
 
   

@@ -10,6 +10,7 @@ module DynamicGraphMetrics
   
   @settings = {}
   @mapping = nil
+  $lastTimelineID = 0
   
   ###############################################
   ######## Query all necessary settings #########
@@ -195,7 +196,7 @@ module DynamicGraphMetrics
       folder = @settings["communities"]
       files = Dir.entries(folder).select { |f| File.file?(folder+'/'+f) }
       files.sort!
-      intervals = compare_components(files, folder, 3, 0.2)
+      intervals = compare_components(files, folder)
         # to do: do something with the output
       puts intervals
       
