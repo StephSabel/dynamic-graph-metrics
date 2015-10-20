@@ -2,7 +2,7 @@
 # Stephanie Embgen
 
 require "set"
-require_relative "component.rb"
+#require_relative "component.rb"
 
 class ComponentTimeline
   
@@ -10,18 +10,18 @@ class ComponentTimeline
     @timeline = [component] 
     $lastTimelineID += 1
     @timelineID = $lastTimelineID
-    component.add_front(self)
-    component.add_timeline(self)
+  end
+  
+  def pop!
+    @timeline.pop
   end
   
   def get_front()
     return @timeline[-1]
   end
   
-  def extend(component)
+  def add(component)
     @timeline << component
-    component.add_front(self)
-    component.add_timeline(self)
   end
   
   def get_lifetime()
@@ -36,4 +36,6 @@ class ComponentTimeline
     $lastTimelineID += 1
     @timelineID = $lastTimelineID
   end
+  
+
 end

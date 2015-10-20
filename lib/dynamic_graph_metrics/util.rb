@@ -214,44 +214,86 @@ def compare_components(files, folder, n = 3, x = 0.3)
   # read all files
   files.each_with_index do |file, i|
     File.open(folder+'/'+file, 'r') do |df|
-      # read all communities
-      daycom = Hash.new{|hash, key| hash[key] = Component.new(i, key)}
-      while line = df.gets
-        daycom[line.split(" ")[1]].add_user(line.split(" ")[0].to_i)
-      end
-      daycom.delete_if {|key, value| value.size < n}
-      days << daycom
       
-      # iterate through fronts to find matches
+      # read all communities from file
+      daycommunities = Hash.new{|hash, key| hash[key] = Component.new(i, key)}
+      while line = df.gets
+        
+        #add user to matching component
+        daycommunities[line.split(" ")[1]].add_user(line.split(" ")[0].to_i)
+        
+      end
+      
+      daycommunities.delete_if {|key, value| value.size < n}
+      days << daycommunities
+      
+      # set up data structures to store matched fronts and next generation of fronts
       matches = Hash.new{|hash,key| hash[key] = Array.new}
       newfronts = Set.new
+      
+      # iterate through set offronts to find matches
       fronts.each do |frontcom|
         matchfound = false
+        
+        # iterate through new communities and compare them with fronts
         days[i].each_value do |newcom|
+          
+          # get jaccard factor
           inter = frontcom.get_set() & newcom.get_set()
           jaccard = inter.size.to_f / (frontcom.get_set().size + newcom.get_set().size - inter.size)
+          
           if jaccard >= x
-            splitevent += 1 if matchfound
+            # if there has been a match already, we have a split event
+            splitevents += 1 if matchfound
+            
+            # add to matches 
             matches[newcom.get_ID] << frontcom
             matchfound = true
           end
         end
+        
+        # front survives if no match has been found
         newfronts.add(frontcom) unless matchfound
       end
       
+      # iterate through new communities to add them to timelines
       days[i].each_value do |newcom|
+        
+        # get matched fronts
         frontmatches = matches[newcom.get_ID]
-        mergeevent += 1 if frontmatches.size > 1
-        #  if match found: extend timelines, add to fronts
+        # if more than 1 match, we have a merge event
+        mergeevents += 1 if frontmatches.size > 1
+        
+        #  if match found: extend timeline, add to fronts
           if frontmatches.size >= 1
+            
+            # iterate through matched fronts
             frontmatches.each do |frontcom|
+              
+              # if it has already been matched, we need to create a duplicate
               if frontcom.matched?
+                
+                # iterate through all timelines this front belongs to
                 frontcom.get_front_of.each do |timeline|
-                  timelines.add(timeline.dup.pop.extend(newcom))
+                  
+                  newtimeline = timeline.dup
+                  newtimeline.new_ID()
+                  newtimeline.pop!
+                  timelines.add(newtimeline.add(newcom))
+                  newcom.add_front(newtimeline)
+                  
                 end
               else
+                
+                # iterate through all timelines this front belongs to
                 frontcom.get_front_of.each do |timeline|
-                  timelines.add(timeline.extend(newcom))
+                  
+                  #puts timeline.inspect
+                  #puts timeline.instance_of?(ComponentTimeline)
+                  newcom.add_front(timeline)
+                  timeline.add(newcom)
+                  
+                  # indicate that match has been found
                   frontcom.match
                 end
               end
@@ -259,9 +301,12 @@ def compare_components(files, folder, n = 3, x = 0.3)
       
         # if no match found: create new timeline
           else
-            timelines.add(ComponentTimeline.new(newcom))
+            newtimeline = ComponentTimeline.new(newcom)
+            timelines.add(newtimeline)
+            newcom.add_front(newtimeline)
             births += 1
           end
+          
         newfronts.add(newcom)
       end
       

@@ -2,7 +2,7 @@
 # Stephanie Embgen
 
 require "set"
-require_relative "component_timeline.rb"
+#require_relative "component_timeline.rb"
 
 class Component
   
@@ -50,6 +50,10 @@ class Component
     @frontof.clear()
   end
   
+  def pop!
+    puts "this is not a pop function"
+  end
+  
   def is_front?
     return @frontof.size > 0
   end
@@ -68,10 +72,6 @@ class Component
   
   def match
     @frontmatched = true
-  end
-  
-  def pop
-    @users.pop!()
   end
   
   def get_front_of
