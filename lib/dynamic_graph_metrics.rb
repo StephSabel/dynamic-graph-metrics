@@ -185,11 +185,13 @@ module DynamicGraphMetrics
       folder = @settings["splitfiles_peruser"]
       files = Dir.entries(folder).select { |f| File.file?(folder+'/'+f) }
       comfolder = "#{folder}/communities"
+      Dir.mkdir(comfolder) unless File.exists?(comfolder)
       @settings["communities"] = comfolder
 
-      files.each {|file| do_graphchi("#{@settings["graphchi"]}/bin/example_apps/communitydetection",folder,file)}
-      Dir.mkdir(comfolder) unless File.exists?(comfolder)
-      system("mv #{folder}/*.communities #{comfolder}")
+      files.each do |file| 
+        do_graphchi("#{@settings["graphchi"]}/bin/example_apps/communitydetection",folder,file)}
+        system("mv #{folder}/*.communities #{comfolder}")
+      end
       
     # compare communities
     elsif task == "comparecommunities"
