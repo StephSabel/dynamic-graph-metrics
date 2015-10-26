@@ -189,7 +189,7 @@ module DynamicGraphMetrics
       @settings["communities"] = comfolder
 
       files.each do |file| 
-        do_graphchi("#{@settings["graphchi"]}/bin/example_apps/communitydetection",folder,file)}
+        do_graphchi("#{@settings["graphchi"]}/bin/example_apps/communitydetection",folder,file)
         system("mv #{folder}/*.communities #{comfolder}")
       end
       
