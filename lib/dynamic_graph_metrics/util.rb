@@ -210,6 +210,7 @@ def compare_components(files, folder, n = 3, x = 0.3)
   births = 0
   splitevents = 0
   mergeevents = 0
+  timelog = Time.now
   
   # read all files
   files.each_with_index do |file, i|
@@ -228,6 +229,9 @@ def compare_components(files, folder, n = 3, x = 0.3)
       daycommunities.delete_if {|key, value| value.size < n}
       days << daycommunities
       
+      puts "reading files: #{Time.now - timelog} seconds"
+      timelog = Time.now
+      
       # set up data structures to store matched fronts and next generation of fronts
       matches = Hash.new{|hash,key| hash[key] = Array.new}
       newfronts = Set.new
@@ -240,7 +244,7 @@ def compare_components(files, folder, n = 3, x = 0.3)
         days[i].each_value do |newcom|
           
           # get jaccard factor
-          inter = frontcom.get_set() & newcom.get_set()
+          inter = frontcom.get_set().size < newcom.get_set().size ? frontcom.get_set() & newcom.get_set() : newcom.get_set() & frontcom.get_set()
           jaccard = inter.size.to_f / (frontcom.get_set().size + newcom.get_set().size - inter.size)
           
           if jaccard >= x
@@ -256,6 +260,10 @@ def compare_components(files, folder, n = 3, x = 0.3)
         # front survives if no match has been found
         newfronts.add(frontcom) unless matchfound
       end
+      
+      puts "matching: #{Time.now - timelog} seconds"
+      puts "number of fronts: #{fronts.size}"
+      timelog = Time.now
       
       # iterate through new communities to add them to timelines
       days[i].each_value do |newcom|
@@ -312,6 +320,11 @@ def compare_components(files, folder, n = 3, x = 0.3)
       end
       
       fronts = newfronts
+      
+      puts "updating timelines: #{Time.now - timelog} seconds"
+      puts "number of timelines: #{timelines.size}"
+      timelog = Time.now
+
 
     end
   end
