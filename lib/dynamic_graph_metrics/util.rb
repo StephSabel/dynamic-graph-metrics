@@ -226,7 +226,9 @@ def compare_components(files, folder, n = 3, x = 0.3)
         
       end
       
+      puts "#{daycommunities.size} communities"
       daycommunities.delete_if {|key, value| value.size < n}
+      puts "after culling: #{daycommunities.size} communities"
       days << daycommunities
       
       puts "reading files: #{Time.now - timelog} seconds"
