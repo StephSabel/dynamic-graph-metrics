@@ -262,7 +262,7 @@ def compare_components(files, folder, n = 10, x = 0.3)
       end
       
       puts "number of fronts: #{fronts.size}"
-      puts "time per front: #{()(Time.now - timelog)/fronts.size).round(3)}" unless fronts.size == 0
+      puts "time per front: #{((Time.now - timelog)/fronts.size).round(3)}" unless fronts.size == 0
       timelog = Time.now
       
       # iterate through new communities to add them to timelines
