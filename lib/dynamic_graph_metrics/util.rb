@@ -202,7 +202,7 @@ end
   
 # compare all communities/connected components of two days that have at least n users
 # outputs list of community/concom pairs with jaccard coefficient > x
-def compare_components(files, folder, n = 3, x = 0.3)
+def compare_components(files, folder, n = 10, x = 0.3)
   
   days = []
   fronts = Set.new
@@ -210,11 +210,11 @@ def compare_components(files, folder, n = 3, x = 0.3)
   births = 0
   splitevents = 0
   mergeevents = 0
-  timelog = Time.now
+  timestart = Time.now
   
   # read all files
   files.each_with_index do |file, i|
-    puts "Reading Day #{i}"
+    puts "\n----------- Day #{i} -----------"
     File.open(folder+'/'+file, 'r') do |df|
       
       # read all communities from file
@@ -226,19 +226,17 @@ def compare_components(files, folder, n = 3, x = 0.3)
         
       end
       
-      puts "#{daycommunities.size} communities"
       daycommunities.delete_if {|key, value| value.size < n}
       puts "after culling: #{daycommunities.size} communities"
       days << daycommunities
       
-      puts "reading files: #{Time.now - timelog} seconds"
       timelog = Time.now
       
       # set up data structures to store matched fronts and next generation of fronts
       matches = Hash.new{|hash,key| hash[key] = Array.new}
       newfronts = Set.new
       
-      # iterate through set offronts to find matches
+      # iterate through set of fronts to find matches
       fronts.each do |frontcom|
         matchfound = false
         
@@ -263,9 +261,8 @@ def compare_components(files, folder, n = 3, x = 0.3)
         newfronts.add(frontcom) unless matchfound
       end
       
-      puts "matching: #{Time.now - timelog} seconds"
       puts "number of fronts: #{fronts.size}"
-      puts "time per front: #{(Time.now - timelog)/fronts.size}" unless fronts.size == 0
+      puts "time per front: #{()(Time.now - timelog)/fronts.size).round(3)}" unless fronts.size == 0
       timelog = Time.now
       
       # iterate through new communities to add them to timelines
@@ -324,10 +321,9 @@ def compare_components(files, folder, n = 3, x = 0.3)
       
       fronts = newfronts
       
-      puts "updating timelines: #{Time.now - timelog} seconds"
       puts "number of timelines: #{timelines.size}"
-      puts "time per timeline: #{(Time.now - timelog)/timelines.size}" unless timelines.size == 0
-      timelog = Time.now
+      timeused = Time.now - timestart
+      puts "#{timeused.round(0)} seconds / #{(timeused/60).round(1)} minutes"
 
 
     end
