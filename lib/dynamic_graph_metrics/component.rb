@@ -23,7 +23,7 @@ class Component
     @edges += edges
   end
   
-  def density()
+  def density
     if @users.size > 1
       return @edges/(@users.size * (@users.size - 1))
     end

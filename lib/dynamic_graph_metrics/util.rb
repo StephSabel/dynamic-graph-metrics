@@ -212,6 +212,7 @@ def compare_components(files, folder, n = 3, x = 0.3)
   splitevents = 0
   mergeevents = 0
   timestart = Time.now
+  communitymetrics = Hash.new{|hash, key| hash[key] = Array.new}
   
   deathoffset = 5
   
@@ -232,6 +233,8 @@ def compare_components(files, folder, n = 3, x = 0.3)
       daycommunities.delete_if {|key, value| value.size < n}
       puts "after culling: #{daycommunities.size} communities"
       days << daycommunities
+      
+      daycommunities.each_value {|comp| communitymetrics["#{i}_#{comp.get_ID}"] = [comp.size, 0]}
       
       timelog = Time.now
       
@@ -307,7 +310,8 @@ def compare_components(files, folder, n = 3, x = 0.3)
                   newtimeline = timeline.dup
                   newtimeline.new_ID()
                   newtimeline.pop!
-                  timelines.add(newtimeline.add(newcom))
+                  newtimeline.add(newcom)
+                  timelines.add(newtimeline)
                   newcom.add_front(newtimeline)
                   
                 end
@@ -348,6 +352,50 @@ def compare_components(files, folder, n = 3, x = 0.3)
 
     end
   end
+  
+  Dir.mkdir("#{folder}/metrics") unless File.exists?("#{folder}/metrics")
+  
+  # get size, lifetime and density distribution
+  sizes_avg = Hash.new(0)
+  lifetimes = Hash.new(0)
+  densities = Hash.new(0)
+  timelinemetrics = Hash.new()
+  timelines.each do |tl| 
+    sld = [tl.get_size_avg, tl.get_lifetime, tl.get_den_avg]
+    timelinemetrics[tl.get_ID] = sld
+    sizes_avg[sld[0].round(0)] += 1
+    lifetimes[sld[1]] += 1
+    densities[sld[2].round(3)] += 1
+  end
+  
+  File.open("#{folder}/metrics/sizedistribution.csv", 'w') do |sdf|
+    sizes_avg.sort
+    sizes_avg.each do |key, value|
+      sdf.puts "#{key};#{value}"
+    end
+  end
+  
+  File.open("#{folder}/metrics/lifetimedistribution.csv", 'w') do |ldf|
+    lifetimes.sort
+    lifetimes.each do |key, value|
+      ldf.puts "#{key};#{value}"
+    end
+  end
+  
+  File.open("#{folder}/metrics/densitydistribution.csv", 'w') do |ddf|
+    densities.sort
+    densities.each do |key, value|
+      ddf.puts "#{key};#{value}"
+    end
+  end
+  
+  File.open("#{folder}/metrics/timelinemetrics.csv", "w") do |tmf|
+    tmf.puts "TimelineID;Average Size;Lifetime;Average Density"
+    timelinemetrics.each do |key, value|
+      tmf.puts "#{key};#{value[0]};#{value[1]};#{value[2]}"
+    end
+  end
+  
   puts "Births: #{births}"
   puts "Deaths: #{deaths}"
   puts "Split Events: #{splitevents}"

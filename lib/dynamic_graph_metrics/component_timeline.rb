@@ -24,11 +24,11 @@ class ComponentTimeline
     @timeline << component
   end
   
-  def get_lifetime()
+  def get_lifetime
     return @timeline[-1].get_day() - @timeline[0].get_day() + 1
   end
   
-  def get_days()
+  def get_days
     return @timeline.size
   end
   
@@ -37,5 +37,19 @@ class ComponentTimeline
     @timelineID = $lastTimelineID
   end
   
-
+  def get_ID
+    @timelineID
+  end
+  
+  def get_size_avg
+    sum = 0
+    @timeline.each {|component| sum += component.size}
+    return sum.to_f / @timeline.size
+  end
+  
+  def get_den_avg
+    sum = 0.0
+    @timeline.each {|component| sum += component.density}
+    return sum / @timeline.size
+  end
 end
