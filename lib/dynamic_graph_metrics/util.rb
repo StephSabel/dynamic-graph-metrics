@@ -219,6 +219,7 @@ def compare_components(files, folder, n = 5, x = 0.3)
   # read all files
   files.each_with_index do |file, i|
     puts "\n----------- Day #{i} -----------"
+    dayusers = {}
     File.open(folder+'/'+file, 'r') do |df|
       
       # read all communities from file
