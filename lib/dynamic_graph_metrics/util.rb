@@ -212,27 +212,22 @@ def compare_components(files, folder, n = 5, x = 0.3)
   splitevents = 0
   mergeevents = 0
   timestart = Time.now
-  times = []
   communitymetrics = Hash.new{|hash, key| hash[key] = Array.new}
   
   deathoffset = 5
-  version = "2.0"
   
   # read all files
   files.each_with_index do |file, i|
     puts "\n----------- Day #{i} -----------"
-    dayusers = {}
-    File.open("#{folder}/#{file}", 'r') do |df|
+    File.open(folder+'/'+file, 'r') do |df|
       
       # read all communities from file
       daycommunities = Hash.new{|hash, key| hash[key] = Component.new(i, key)}
       while line = df.gets
         
         #add user to matching component
-        daycommunities[line.split(" ")[1].to_i].add_user(line.split(" ")[0].to_i)
+        daycommunities[line.split(" ")[1]].add_user(line.split(" ")[0].to_i)
         
-        #save community for user
-        dayusers[line.split(" ")[0].to_i] = line.split(" ")[1].to_i
       end
       
       daycommunities.delete_if {|key, value| value.size < n}
@@ -240,135 +235,123 @@ def compare_components(files, folder, n = 5, x = 0.3)
       days << daycommunities
       
       daycommunities.each_value {|comp| communitymetrics["#{i}_#{comp.get_ID}"] = [comp.size, 0]}
-    end
-    
-    # read _per_user-files to get edges within communities
-    pufile = "#{folder.chomp("/communities")}/#{file.chomp(".communities")}"
-    File.open(pufile, 'r') do |puf|
-      while line = puf.gets
-        if dayusers[line.split(" ")[0].to_i] = dayusers[line.split(" ")[1].to_i]
-          days[i][dayusers[line.split(" ")[0].to_i]].add_edges(line.split(" ")[2].to_i)
-        end
-      end
-    end
-    
-    
-    timelog = Time.now
-    
-    # set up data structures to store matched fronts and next generation of fronts
-    matches = Hash.new{|hash,key| hash[key] = Array.new}
-    newfronts = Set.new
-    
-    # iterate through set of fronts to find matches
-    fronts.each do |frontcom|
-      matchfound = false
       
-      # iterate through new communities and compare them with fronts
+      timelog = Time.now
+      
+      # set up data structures to store matched fronts and next generation of fronts
+      matches = Hash.new{|hash,key| hash[key] = Array.new}
+      newfronts = Set.new
+      
+      # iterate through set of fronts to find matches
+      fronts.each do |frontcom|
+        matchfound = false
+        
+        # iterate through new communities and compare them with fronts
+        days[i].each_value do |newcom|
+          
+          # get jaccard factor
+          
+          ###### version 1: just intersect
+          # inter = frontcom.get_set() & newcom.get_set()
+          
+          ###### version 2: put smaller set in front
+          # inter = frontcom.get_set().size < newcom.get_set().size ? frontcom.get_set() & newcom.get_set() : newcom.get_set() & frontcom.get_set()
+          
+          ###### version 3: only intersect if sizes are compatible
+          set1 = frontcom.get_set().size < newcom.get_set().size ? frontcom.get_set() : newcom.get_set()
+          set2 = frontcom.get_set().size < newcom.get_set().size ? newcom.get_set() : frontcom.get_set()
+          
+          if set1.size.to_f/set2.size.to_f > x
+            inter = set1 & set2
+          else 
+            inter = Set.new
+          end
+          
+          jaccard = inter.size.to_f / (frontcom.get_set().size + newcom.get_set().size - inter.size)
+          
+          if jaccard >= x
+            # if there has been a match already, we have a split event
+            splitevents += 1 if matchfound
+            
+            # add to matches 
+            matches[newcom.get_ID] << frontcom
+            matchfound = true
+          end
+        end
+        
+        # front survives if no match has been found
+        newfronts.add(frontcom) unless matchfound
+      end
+      
+      puts "number of fronts: #{fronts.size}"
+      puts "time per front: #{((Time.now - timelog)/fronts.size).round(3)}" unless fronts.size == 0
+      timelog = Time.now
+      
+      # iterate through new communities to add them to timelines
       days[i].each_value do |newcom|
         
-        # get jaccard factor
+        # get matched fronts
+        frontmatches = matches[newcom.get_ID]
+        # if more than 1 match, we have a merge event
+        mergeevents += 1 if frontmatches.size > 1
         
-        ###### version 1: just intersect
-        # inter = frontcom.get_set() & newcom.get_set()
-        
-        ###### version 2: put smaller set in front
-        # inter = frontcom.get_set().size < newcom.get_set().size ? frontcom.get_set() & newcom.get_set() : newcom.get_set() & frontcom.get_set()
-        
-        ###### version 3: only intersect if sizes are compatible
-        set1 = frontcom.get_set().size < newcom.get_set().size ? frontcom.get_set() : newcom.get_set()
-        set2 = frontcom.get_set().size < newcom.get_set().size ? newcom.get_set() : frontcom.get_set()
-        
-        if set1.size.to_f/set2.size.to_f > x
-          inter = set1 & set2
-        else 
-          inter = Set.new
-        end
-        
-        jaccard = inter.size.to_f / (frontcom.get_set().size + newcom.get_set().size - inter.size)
-        
-        if jaccard >= x
-          # if there has been a match already, we have a split event
-          splitevents += 1 if matchfound
-          
-          # add to matches 
-          matches[newcom.get_ID] << frontcom
-          matchfound = true
-        end
-      end
-      
-      # front survives if no match has been found
-      newfronts.add(frontcom) unless matchfound
-    end
-    
-    puts "number of fronts: #{fronts.size}"
-    puts "time per front: #{((Time.now - timelog)/fronts.size).round(3)}" unless fronts.size == 0
-    
-    # iterate through new communities to add them to timelines
-    days[i].each_value do |newcom|
-      
-      # get matched fronts
-      frontmatches = matches[newcom.get_ID]
-      # if more than 1 match, we have a merge event
-      mergeevents += 1 if frontmatches.size > 1
-      
-      #  if match found: extend timeline, add to fronts
-        if frontmatches.size >= 1
-          
-          # iterate through matched fronts
-          frontmatches.each do |frontcom|
+        #  if match found: extend timeline, add to fronts
+          if frontmatches.size >= 1
             
-            # if it has already been matched, we need to create a duplicate
-            if frontcom.matched?
+            # iterate through matched fronts
+            frontmatches.each do |frontcom|
               
-              # iterate through all timelines this front belongs to
-              frontcom.get_front_of.each do |timeline|
+              # if it has already been matched, we need to create a duplicate
+              if frontcom.matched?
                 
-                newtimeline = timeline.dup
-                newtimeline.new_ID()
-                newtimeline.pop!
-                newtimeline.add(newcom)
-                timelines.add(newtimeline)
-                newcom.add_front(newtimeline)
+                # iterate through all timelines this front belongs to
+                frontcom.get_front_of.each do |timeline|
+                  
+                  newtimeline = timeline.dup
+                  newtimeline.new_ID()
+                  newtimeline.pop!
+                  newtimeline.add(newcom)
+                  timelines.add(newtimeline)
+                  newcom.add_front(newtimeline)
+                  
+                end
+              else
                 
-              end
-            else
-              
-              # iterate through all timelines this front belongs to
-              frontcom.get_front_of.each do |timeline|
-                
-                #puts timeline.inspect
-                #puts timeline.instance_of?(ComponentTimeline)
-                newcom.add_front(timeline)
-                timeline.add(newcom)
-                
-                # indicate that match has been found
-                frontcom.match
+                # iterate through all timelines this front belongs to
+                frontcom.get_front_of.each do |timeline|
+                  
+                  #puts timeline.inspect
+                  #puts timeline.instance_of?(ComponentTimeline)
+                  newcom.add_front(timeline)
+                  timeline.add(newcom)
+                  
+                  # indicate that match has been found
+                  frontcom.match
+                end
               end
             end
+      
+        # if no match found: create new timeline
+          else
+            newtimeline = ComponentTimeline.new(newcom)
+            timelines.add(newtimeline)
+            newcom.add_front(newtimeline)
+            births += 1
           end
-    
-      # if no match found: create new timeline
-        else
-          newtimeline = ComponentTimeline.new(newcom)
-          timelines.add(newtimeline)
-          newcom.add_front(newtimeline)
-          births += 1
-        end
-        
-      newfronts.add(newcom)
+          
+        newfronts.add(newcom)
+      end
+      newfronts.select {|front| front.get_day() >= i - deathoffset}
+      fronts = newfronts
+      
+      puts "number of timelines: #{timelines.size}"
+      timeused = Time.now - timestart
+      timestart = Time.now
+      puts "#{timeused.round(0)} seconds / #{(timeused/60).round(1)} minutes"
+
+
     end
-    newfronts.select {|front| front.get_day() >= i - deathoffset}
-    fronts = newfronts
-    
-    puts "number of timelines: #{timelines.size}"
-    timeused = Time.now - timestart
-    timestart = Time.now
-    puts "#{timeused.round(0)} seconds / #{(timeused/60).round(1)} minutes"
-    times << timeused
-
-
   end
-  
   
   Dir.mkdir("#{folder}/metrics") unless File.exists?("#{folder}/metrics")
   
@@ -385,49 +368,32 @@ def compare_components(files, folder, n = 5, x = 0.3)
     densities[sld[2].round(3)] += 1
   end
   
-  File.open("#{folder}/metrics/sizedistribution_#{version}_#{n}_#{x}_#{deathoffset}.csv", 'w') do |sdf|
+  File.open("#{folder}/metrics/sizedistribution.csv", 'w') do |sdf|
     sizes_avg.sort
     sizes_avg.each do |key, value|
       sdf.puts "#{key};#{value}"
     end
   end
   
-  File.open("#{folder}/metrics/lifetimedistribution_#{version}_#{n}_#{x}_#{deathoffset}.csv", 'w') do |ldf|
+  File.open("#{folder}/metrics/lifetimedistribution.csv", 'w') do |ldf|
     lifetimes.sort
     lifetimes.each do |key, value|
       ldf.puts "#{key};#{value}"
     end
   end
   
-  File.open("#{folder}/metrics/densitydistribution_#{version}_#{n}_#{x}_#{deathoffset}.csv", 'w') do |ddf|
+  File.open("#{folder}/metrics/densitydistribution.csv", 'w') do |ddf|
     densities.sort
     densities.each do |key, value|
       ddf.puts "#{key};#{value}"
     end
   end
   
-  File.open("#{folder}/metrics/timelinemetrics_#{version}_#{n}_#{x}_#{deathoffset}.csv", "w") do |tmf|
+  File.open("#{folder}/metrics/timelinemetrics.csv", "w") do |tmf|
     tmf.puts "TimelineID;Average Size;Lifetime;Average Density"
     timelinemetrics.each do |key, value|
       tmf.puts "#{key};#{value[0]};#{value[1]};#{value[2]}"
     end
-  end
-  
-  File.open("#{folder}/metrics/metrics_#{version}_#{n}_#{x}_#{deathoffset}", "w") do |mf|
-    mf.puts "Minimum community size: #{n}"
-    mf.puts "Minimum jaccard coefficient: #{x}"
-    mf.puts "Maximum survival without matches: #{deathoffset} days"
-    mf.puts "Algorithm Version: #{version}"
-    mf.puts "Number of snapshots: #{days.size}"
-    
-    timesum = 0
-    times.each{|time| timesum += time}
-    
-    mf.puts "Runtime: #{timesum/3600} hours, #{(timesum%3600)/60} minutes, #{timesum%60} seconds"
-    mf.puts "\n Runtime per snapshot"
-    mf.puts "snapshotID;runtime"
-    
-    times.each_with_index{|i, time| mf.puts "#{i};#{time}"}
   end
   
   puts "Births: #{births}"
@@ -436,5 +402,3 @@ def compare_components(files, folder, n = 5, x = 0.3)
   puts "Merge Events: #{mergeevents}"
   puts "Timelines: #{timelines.size}"
 end
-
-  
