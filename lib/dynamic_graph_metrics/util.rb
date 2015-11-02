@@ -243,7 +243,7 @@ def compare_components(files, folder, n = 5, x = 0.3)
     end
     
     # read _per_user-files to get edges within communities
-    pufile = "#{folder.delete("/communities")}/#{file.delete(".communities")}"
+    pufile = "#{folder.chomp("/communities")}/#{file.chomp(".communities")}"
     File.open(pufile, 'r') do |puf|
       while line = puf.gets
         if dayusers[line.split(" ")[0].to_i] = dayusers[line.split(" ")[1].to_i]
