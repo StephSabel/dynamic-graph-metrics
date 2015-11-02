@@ -342,6 +342,7 @@ def compare_components(files, folder, n = 3, x = 0.3)
       
       puts "number of timelines: #{timelines.size}"
       timeused = Time.now - timestart
+      timestart = Time.now
       puts "#{timeused.round(0)} seconds / #{(timeused/60).round(1)} minutes"
 
 
