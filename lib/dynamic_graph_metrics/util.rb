@@ -236,6 +236,16 @@ def compare_components(files, folder, n = 5, x = 0.3)
       
       daycommunities.each_value {|comp| communitymetrics["#{i}_#{comp.get_ID}"] = [comp.size, 0]}
       
+      # read _per_user-files to get edges within communities
+      pufile = "#{folder.chomp("/communities")}/#{file.chomp(".communities")}"
+      File.open(pufile, 'r') do |puf|
+        while line = puf.gets
+          if dayusers[line.split(" ")[0].to_i] = dayusers[line.split(" ")[1].to_i]
+            days[i][dayusers[line.split(" ")[0].to_i]].add_edges(line.split(" ")[2].to_i)
+          end
+        end
+      end
+      
       timelog = Time.now
       
       # set up data structures to store matched fronts and next generation of fronts
@@ -368,32 +378,54 @@ def compare_components(files, folder, n = 5, x = 0.3)
     densities[sld[2].round(3)] += 1
   end
   
-  File.open("#{folder}/metrics/sizedistribution.csv", 'w') do |sdf|
+  File.open("#{folder}/metrics/sizedistribution_#{version}_#{n}_#{x}_#{deathoffset}.csv", 'w') do |sdf|
     sizes_avg.sort
     sizes_avg.each do |key, value|
       sdf.puts "#{key};#{value}"
     end
   end
   
-  File.open("#{folder}/metrics/lifetimedistribution.csv", 'w') do |ldf|
+  File.open("#{folder}/metrics/lifetimedistribution_#{version}_#{n}_#{x}_#{deathoffset}.csv", 'w') do |ldf|
     lifetimes.sort
     lifetimes.each do |key, value|
       ldf.puts "#{key};#{value}"
     end
   end
   
-  File.open("#{folder}/metrics/densitydistribution.csv", 'w') do |ddf|
+  File.open("#{folder}/metrics/densitydistribution_#{version}_#{n}_#{x}_#{deathoffset}.csv", 'w') do |ddf|
     densities.sort
     densities.each do |key, value|
       ddf.puts "#{key};#{value}"
     end
   end
   
-  File.open("#{folder}/metrics/timelinemetrics.csv", "w") do |tmf|
+  File.open("#{folder}/metrics/timelinemetrics_#{version}_#{n}_#{x}_#{deathoffset}.csv", "w") do |tmf|
     tmf.puts "TimelineID;Average Size;Lifetime;Average Density"
     timelinemetrics.each do |key, value|
       tmf.puts "#{key};#{value[0]};#{value[1]};#{value[2]}"
     end
+  end
+  
+  File.open("#{folder}/metrics/metrics_#{version}_#{n}_#{x}_#{deathoffset}", "w") do |mf|
+    mf.puts "Minimum community size: #{n}"
+    mf.puts "Minimum jaccard coefficient: #{x}"
+    mf.puts "Maximum survival without matches: #{deathoffset} days"
+    mf.puts "Algorithm Version: #{version}"
+    mf.puts "Number of snapshots: #{days.size}"
+    mf.puts "Births: #{births}"
+    mf.puts "Deaths: #{deaths}"
+    mf.puts "Split Events: #{splitevents}"
+    mf.puts "Merge Events: #{mergeevents}"
+    mf.puts "Timelines: #{timelines.size}"
+    
+    timesum = 0
+    times.each{|time| timesum += time}
+    
+    mf.puts "Runtime: #{timesum/3600} hours, #{(timesum%3600)/60} minutes, #{timesum%60} seconds"
+    mf.puts "\n Runtime per snapshot"
+    mf.puts "snapshotID;runtime"
+    
+    times.each_with_index{|i, time| mf.puts "#{i};#{time}"}
   end
   
   puts "Births: #{births}"
