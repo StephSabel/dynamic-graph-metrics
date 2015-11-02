@@ -11,7 +11,6 @@ class Component
     @componentID = componentID
     @users = Set.new
     @edges = 0
-    @memberof = Set.new
     @frontof = Set.new
     @frontmatched = false
   end
@@ -42,16 +41,8 @@ class Component
     @frontof.add(timeline)
   end
   
-  def add_timeline(timeline)
-    @memberof.add(timeline)
-  end
-  
   def clear_front()
     @frontof.clear()
-  end
-  
-  def pop!
-    puts "this is not a pop function"
   end
   
   def is_front?

@@ -202,15 +202,18 @@ end
   
 # compare all communities/connected components of two days that have at least n users
 # outputs list of community/concom pairs with jaccard coefficient > x
-def compare_components(files, folder, n = 10, x = 0.3)
+def compare_components(files, folder, n = 3, x = 0.3)
   
   days = []
   fronts = Set.new
   timelines = Set.new
   births = 0
+  deaths = 0
   splitevents = 0
   mergeevents = 0
   timestart = Time.now
+  
+  deathoffset = 5
   
   # read all files
   files.each_with_index do |file, i|
@@ -244,7 +247,23 @@ def compare_components(files, folder, n = 10, x = 0.3)
         days[i].each_value do |newcom|
           
           # get jaccard factor
-          inter = frontcom.get_set().size < newcom.get_set().size ? frontcom.get_set() & newcom.get_set() : newcom.get_set() & frontcom.get_set()
+          
+          ###### version 1: just intersect
+          # inter = frontcom.get_set() & newcom.get_set()
+          
+          ###### version 2: put smaller set in front
+          # inter = frontcom.get_set().size < newcom.get_set().size ? frontcom.get_set() & newcom.get_set() : newcom.get_set() & frontcom.get_set()
+          
+          ###### version 3: only intersect if sizes are compatible
+          set1 = frontcom.get_set().size < newcom.get_set().size ? frontcom.get_set() : newcom.get_set()
+          set2 = frontcom.get_set().size < newcom.get_set().size ? newcom.get_set() : frontcom.get_set()
+          
+          if set1.size.to_f/set2.size.to_f > x
+            inter = set1 & set2
+          else 
+            inter = Set.new
+          end
+          
           jaccard = inter.size.to_f / (frontcom.get_set().size + newcom.get_set().size - inter.size)
           
           if jaccard >= x
@@ -318,7 +337,7 @@ def compare_components(files, folder, n = 10, x = 0.3)
           
         newfronts.add(newcom)
       end
-      
+      newfronts.select {|front| front.get_day() >= i - deathoffset}
       fronts = newfronts
       
       puts "number of timelines: #{timelines.size}"
@@ -329,6 +348,7 @@ def compare_components(files, folder, n = 10, x = 0.3)
     end
   end
   puts "Births: #{births}"
+  puts "Deaths: #{deaths}"
   puts "Split Events: #{splitevents}"
   puts "Merge Events: #{mergeevents}"
   puts "Timelines: #{timelines.size}"
