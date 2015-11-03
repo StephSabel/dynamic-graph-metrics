@@ -202,7 +202,7 @@ end
   
 # compare all communities/connected components of two days that have at least n users
 # outputs list of community/concom pairs with jaccard coefficient > x
-def compare_components(files, folder, n = 10, x = 0.3)
+def compare_components(files, folder, n = 3, x = 0.3)
   
   days = []
   fronts = Set.new
@@ -216,6 +216,7 @@ def compare_components(files, folder, n = 10, x = 0.3)
   
   version = "2.0"
   deathoffset = 5
+  times = []
   
   # read all files
   files.each_with_index do |file, i|
@@ -359,6 +360,7 @@ def compare_components(files, folder, n = 10, x = 0.3)
       puts "number of timelines: #{timelines.size}"
       timeused = Time.now - timestart
       timestart = Time.now
+      times << timeused
       puts "#{timeused.round(0)} seconds / #{(timeused/60).round(1)} minutes"
 
 
