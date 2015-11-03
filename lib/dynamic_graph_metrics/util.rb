@@ -202,7 +202,7 @@ end
   
 # compare all communities/connected components of two days that have at least n users
 # outputs list of community/concom pairs with jaccard coefficient > x
-def compare_components(files, folder, n = 5, x = 0.3)
+def compare_components(files, folder, n = 10, x = 0.3)
   
   days = []
   fronts = Set.new
@@ -214,6 +214,7 @@ def compare_components(files, folder, n = 5, x = 0.3)
   timestart = Time.now
   communitymetrics = Hash.new{|hash, key| hash[key] = Array.new}
   
+  version = "2.0"
   deathoffset = 5
   
   # read all files
