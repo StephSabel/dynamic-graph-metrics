@@ -379,21 +379,21 @@ def compare_components(files, folder, n = 5, x = 0.3)
   end
   
   File.open("#{folder}/metrics/sizedistribution_#{version}_#{n}_#{x}_#{deathoffset}.csv", 'w') do |sdf|
-    sizes_avg.sort
+    sizes_avg.keys.sort
     sizes_avg.each do |key, value|
       sdf.puts "#{key};#{value}"
     end
   end
   
   File.open("#{folder}/metrics/lifetimedistribution_#{version}_#{n}_#{x}_#{deathoffset}.csv", 'w') do |ldf|
-    lifetimes.sort
+    lifetimes.keys.sort
     lifetimes.each do |key, value|
       ldf.puts "#{key};#{value}"
     end
   end
   
   File.open("#{folder}/metrics/densitydistribution_#{version}_#{n}_#{x}_#{deathoffset}.csv", 'w') do |ddf|
-    densities.sort
+    densities.keys.sort
     densities.each do |key, value|
       ddf.puts "#{key};#{value}"
     end
@@ -425,7 +425,7 @@ def compare_components(files, folder, n = 5, x = 0.3)
     mf.puts "\n Runtime per snapshot"
     mf.puts "snapshotID;runtime"
     
-    times.each_with_index{|i, time| mf.puts "#{i};#{time}"}
+    times.each_with_index{|i, time| mf.puts "#{i};#{time.round()}"}
   end
   
   puts "Births: #{births}"
