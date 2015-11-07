@@ -360,7 +360,7 @@ def compare_components(files, folder, n = 10, x = 0.3)
       puts "number of timelines: #{timelines.size}"
       timeused = Time.now - timestart
       timestart = Time.now
-      times << timeused
+      times << timeused.to_i
       puts "#{timeused.round(0)} seconds / #{(timeused/60).round(1)} minutes"
 
 
@@ -379,25 +379,25 @@ def compare_components(files, folder, n = 10, x = 0.3)
     timelinemetrics[tl.get_ID] = sld
     sizes_avg[sld[0].round(0)] += 1
     lifetimes[sld[1]] += 1
-    densities[sld[2].round(3)] += 1
+    densities[sld[2]] += 1
   end
   
   File.open("#{folder}/metrics/sizedistribution_#{version}_#{n}_#{x}_#{deathoffset}.csv", 'w') do |sdf|
-    sizes_avg.sort
+    sizes_avg.keys.sort
     sizes_avg.each do |key, value|
       sdf.puts "#{key};#{value}"
     end
   end
   
   File.open("#{folder}/metrics/lifetimedistribution_#{version}_#{n}_#{x}_#{deathoffset}.csv", 'w') do |ldf|
-    lifetimes.sort
+    lifetimes.keys.sort
     lifetimes.each do |key, value|
       ldf.puts "#{key};#{value}"
     end
   end
   
   File.open("#{folder}/metrics/densitydistribution_#{version}_#{n}_#{x}_#{deathoffset}.csv", 'w') do |ddf|
-    densities.sort
+    densities.keys.sort
     densities.each do |key, value|
       ddf.puts "#{key};#{value}"
     end
@@ -429,7 +429,7 @@ def compare_components(files, folder, n = 10, x = 0.3)
     mf.puts "\n Runtime per snapshot"
     mf.puts "snapshotID;runtime"
     
-    times.each_with_index{|i, time| mf.puts "#{i};#{time}"}
+    times.each_with_index{|time, i| mf.puts "#{i};#{time.round(2)}"}
   end
   
   puts "Births: #{births}"
