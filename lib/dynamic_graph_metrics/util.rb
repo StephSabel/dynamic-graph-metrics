@@ -429,7 +429,8 @@ def compare_components(files, folder, n = 10, x = 0.3)
     mf.puts "\n Runtime per snapshot"
     mf.puts "snapshotID;runtime"
     
-    times.each_with_index{|time, i| mf.puts "#{i};#{time.round(2)}"}
+    times.each_with_index{|time, i| mf.puts "#{i};#{time.round()}"}
+
   end
   
   puts "Births: #{births}"
