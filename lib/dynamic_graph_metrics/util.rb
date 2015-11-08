@@ -212,7 +212,7 @@ def compare_components(files, folder, n = 5, x = 0.3)
   splitevents = 0
   mergeevents = 0
   timestart = Time.now
-  communitymetrics = Hash.new{|hash, key| hash[key] = Array.new}
+  #communitymetrics = Hash.new{|hash, key| hash[key] = Array.new}
   
   version = "2.0"
   deathoffset = 5
@@ -229,27 +229,29 @@ def compare_components(files, folder, n = 5, x = 0.3)
       while line = df.gets
         
         #add user to matching component
-        daycommunities[line.split(" ")[1]].add_user(line.split(" ")[0].to_i)
-        
+        daycommunities[line.split(" ")[1].to_i].add_user(line.split(" ")[0].to_i)
+        dayusers[line.split(" ")[0].to_i] = line.split(" ")[1].to_i
+      end
+      
+      # daycommunities.each_value {|comp| communitymetrics["#{i}_#{comp.get_ID}"] = [comp.size, 0]}
+      
+      # read _per_user-files to get edges within communities
+      pufile = "#{folder.chomp("/communities")}/#{file.chomp(".communities")}"
+      File.open(pufile, 'r') do |puf|
+        while line = puf.gets
+          if dayusers[line.split(" ")[0].to_i] == dayusers[line.split(" ")[1].to_i]
+            daycommunities[dayusers[line.split(" ")[0].to_i]].add_edges(line.split(" ")[2].to_i)
+          end
+        end
       end
       
       daycommunities.delete_if {|key, value| value.size < n}
       puts "after culling: #{daycommunities.size} communities"
       days << daycommunities
       
-      daycommunities.each_value {|comp| communitymetrics["#{i}_#{comp.get_ID}"] = [comp.size, 0]}
-      
-      # read _per_user-files to get edges within communities
-      pufile = "#{folder.chomp("/communities")}/#{file.chomp(".communities")}"
-      File.open(pufile, 'r') do |puf|
-        while line = puf.gets
-          if dayusers[line.split(" ")[0].to_i] = dayusers[line.split(" ")[1].to_i]
-            days[i][dayusers[line.split(" ")[0].to_i]].add_edges(line.split(" ")[2].to_i)
-          end
-        end
-      end
-      
       timelog = Time.now
+      
+      
       
       # set up data structures to store matched fronts and next generation of fronts
       matches = Hash.new{|hash,key| hash[key] = Array.new}
@@ -258,6 +260,7 @@ def compare_components(files, folder, n = 5, x = 0.3)
       # iterate through set of fronts to find matches
       fronts.each do |frontcom|
         matchfound = false
+        
         
         # iterate through new communities and compare them with fronts
         days[i].each_value do |newcom|
@@ -299,7 +302,8 @@ def compare_components(files, folder, n = 5, x = 0.3)
       puts "number of fronts: #{fronts.size}"
       puts "time per front: #{((Time.now - timelog)/fronts.size).round(3)}" unless fronts.size == 0
       timelog = Time.now
-      
+    
+    
       # iterate through new communities to add them to timelines
       days[i].each_value do |newcom|
         

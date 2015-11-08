@@ -26,6 +26,8 @@ class Component
   def density
     if @users.size > 1
       return @edges/(@users.size * (@users.size - 1))
+    else
+      return -1
     end
   end
   
