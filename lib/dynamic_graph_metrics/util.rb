@@ -10,7 +10,7 @@ require_relative "component_timeline.rb"
 
 # Split a graph into snapshots of a specific duration
 
-def create_snapshots(sortedgraphfile, splitfilefolder, hour = 4)
+def create_snapshots(sortedgraphfile, splitfilefolder, hour = 4, days = 1)
   filenumber = 0
   timeoffset = hour * 3600
   lasttimestamp = Time.at(timeoffset + 1)
@@ -217,6 +217,8 @@ def compare_components(files, folder, n = 5, x = 0.3)
   version = "2.0"
   deathoffset = 5
   times = []
+  communitynumbers = []
+  timelog = Time.now
   
   # read all files
   files.each_with_index do |file, i|
@@ -233,6 +235,8 @@ def compare_components(files, folder, n = 5, x = 0.3)
         dayusers[line.split(" ")[0].to_i] = line.split(" ")[1].to_i
       end
       
+      puts "reading files: #{(timelog - Time.now).round} seconds"
+      timelog = Time.now
       # daycommunities.each_value {|comp| communitymetrics["#{i}_#{comp.get_ID}"] = [comp.size, 0]}
       
       # read _per_user-files to get edges within communities
@@ -248,7 +252,9 @@ def compare_components(files, folder, n = 5, x = 0.3)
       daycommunities.delete_if {|key, value| value.size < n}
       puts "after culling: #{daycommunities.size} communities"
       days << daycommunities
+      communitynumbers << daycommunities.size
       
+      puts "reading edges: #{(timelog - Time.now).round} seconds"
       timelog = Time.now
       
       
@@ -300,6 +306,7 @@ def compare_components(files, folder, n = 5, x = 0.3)
       end
       
       puts "number of fronts: #{fronts.size}"
+      puts "matching: #{(Time.now - limelog).round} seconds"
       puts "time per front: #{((Time.now - timelog)/fronts.size).round(3)}" unless fronts.size == 0
       timelog = Time.now
     
@@ -383,7 +390,7 @@ def compare_components(files, folder, n = 5, x = 0.3)
     timelinemetrics[tl.get_ID] = sld
     sizes_avg[sld[0].round(0)] += 1
     lifetimes[sld[1]] += 1
-    densities[sld[2]] += 1
+    densities[sld[2].round(5)] += 1
   end
   
   File.open("#{folder}/metrics/sizedistribution_#{version}_#{n}_#{x}_#{deathoffset}.csv", 'w') do |sdf|
@@ -431,9 +438,9 @@ def compare_components(files, folder, n = 5, x = 0.3)
     
     mf.puts "Runtime: #{timesum/3600} hours, #{(timesum%3600)/60} minutes, #{timesum%60} seconds"
     mf.puts "\n Runtime per snapshot"
-    mf.puts "snapshotID;runtime"
+    mf.puts "snapshotID;runtime, no of communities"
     
-    times.each_with_index{|time, i| mf.puts "#{i};#{time.round()}"}
+    times.each_with_index{|time, i| mf.puts "#{i};#{time.round()};#{communitynumbers[i]}"}
 
   end
   
