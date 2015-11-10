@@ -216,8 +216,12 @@ def compare_components(files, folder, n = 5, x = 0.3)
   
   version = "2.0"
   deathoffset = 5
+  
+  #metrics
   times = []
   communitynumbers = []
+  userlifetime = []
+  
   timelog = Time.now
   
   # read all files
@@ -229,10 +233,15 @@ def compare_components(files, folder, n = 5, x = 0.3)
       # read all communities from file
       daycommunities = Hash.new{|hash, key| hash[key] = Component.new(i, key)}
       while line = df.gets
+        user = line.split(" ")[0].to_i
+        com = line.split(" ")[1].to_i
         
-        #add user to matching component
-        daycommunities[line.split(" ")[1].to_i].add_user(line.split(" ")[0].to_i)
-        dayusers[line.split(" ")[0].to_i] = line.split(" ")[1].to_i
+        # add user to matching component
+        daycommunities[com].add_user(user)
+        dayusers[user] = com
+        
+        # save metrics 
+        userlifetime[user] = userlifetime[user].to_i + 1
       end
       
       puts "reading files: #{(timelog - Time.now).round} seconds"
@@ -306,7 +315,7 @@ def compare_components(files, folder, n = 5, x = 0.3)
       end
       
       puts "number of fronts: #{fronts.size}"
-      puts "matching: #{(Time.now - limelog).round} seconds"
+      puts "matching: #{(Time.now - timelog).round} seconds"
       puts "time per front: #{((Time.now - timelog)/fronts.size).round(3)}" unless fronts.size == 0
       timelog = Time.now
     
