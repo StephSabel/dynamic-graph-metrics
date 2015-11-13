@@ -244,7 +244,7 @@ def compare_components(files, folder, n = 5, x = 0.3)
         userlifetime[user] = userlifetime[user].to_i + 1
       end
       
-      puts "reading files: #{(timelog - Time.now).round} seconds"
+      puts "reading files: #{(Time.now - timelog).round} seconds"
       timelog = Time.now
       # daycommunities.each_value {|comp| communitymetrics["#{i}_#{comp.get_ID}"] = [comp.size, 0]}
       
@@ -263,7 +263,7 @@ def compare_components(files, folder, n = 5, x = 0.3)
       days << daycommunities
       communitynumbers << daycommunities.size
       
-      puts "reading edges: #{(timelog - Time.now).round} seconds"
+      puts "reading edges: #{(Time.now - timelog).round} seconds"
       timelog = Time.now
       
       
