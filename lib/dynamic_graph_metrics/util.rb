@@ -202,7 +202,7 @@ end
   
 # compare all communities/connected components of two days that have at least n users
 # outputs list of community/concom pairs with jaccard coefficient > x
-def compare_components(files, folder, n = 5, x = 0.2)
+def compare_components(files, folder, n = 8, x = 0.4)
   
   days = []
   fronts = Set.new
@@ -220,7 +220,8 @@ def compare_components(files, folder, n = 5, x = 0.2)
   #metrics
   times = []
   communitynumbers = []
-  userlifetime = []
+  usersnapshots = []
+  userdays = []
   
   timelog = Time.now
   
@@ -241,7 +242,8 @@ def compare_components(files, folder, n = 5, x = 0.2)
         dayusers[user] = com
         
         # save metrics 
-        userlifetime[user] = userlifetime[user].to_i + 1
+        usersnapshots[user] = usersnapshots[user] || [] 
+        usersnapshots[user] << i
       end
       
       puts "reading files: #{(Time.now - timelog).round} seconds"
@@ -262,6 +264,7 @@ def compare_components(files, folder, n = 5, x = 0.2)
       puts "after culling: #{daycommunities.size} communities"
       days << daycommunities
       communitynumbers << daycommunities.size
+      userdays << dayusers
       
       puts "reading edges: #{(Time.now - timelog).round} seconds"
       timelog = Time.now
@@ -427,6 +430,23 @@ def compare_components(files, folder, n = 5, x = 0.2)
     tmf.puts "TimelineID;Average Size;Lifetime;Average Density"
     timelinemetrics.each do |key, value|
       tmf.puts "#{key};#{value[0]};#{value[1]};#{value[2]}"
+    end
+  end
+  
+  File.open("#{folder}/metrics/usersnapshots_#{version}_#{n}_#{x}_#{deathoffset}.csv", "w") do |usf|
+    usf.puts "UserID;Active in snapshots;Time from first to last snapshot, switched communities?"
+    usersnapshots.each_with_index do |snapshots, user|
+      if snapshots
+        usertls = days[snapshots[-1]][userdays[snapshots[-1]][user]].get_front_of # can be nil
+        switch = false
+        snapshots.each do |i|
+          thistl = days[i][userdays[i][user]].get_front_of
+          switch = true unless usertls.subset? thistl
+        end
+        
+        usf.puts "#{user};#{snapshots.size};#{snapshots[-1] - snapshots[0] + 1};#{switch}"
+        
+      end
     end
   end
   
