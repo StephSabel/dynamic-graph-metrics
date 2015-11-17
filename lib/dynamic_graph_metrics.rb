@@ -134,8 +134,10 @@ module DynamicGraphMetrics
       @settings["splitfiles"] = folder
       puts "At what hour (in GMT) should the days be split?"
       time = gets.chomp.to_i
+      puts "How many days should one snapshot cover?"
+      days = gets.chomp.to_i
       Dir.mkdir(folder) unless File.exists?(folder)
-      create_snapshots(@settings["sortedgraphfile"], folder, time)
+      create_snapshots(@settings["sortedgraphfile"], folder, time, days)
       
     # calculate degree distribution
     elsif task == "degdist"
@@ -193,14 +195,20 @@ module DynamicGraphMetrics
         system("mv #{folder}/*.communities #{comfolder}")
       end
       
+    # cleanup communities
+    elsif task == "cleanup"
+      folder = @settings["communities"]
+      files = Dir.entries(folder).select { |f| File.file?(folder+'/'+f) }
+      files.sort!
+      
+      files.each {|file| cleanup("#{folder}/#{file}")}
+      
     # compare communities
     elsif task == "comparecommunities"
       folder = @settings["communities"]
       files = Dir.entries(folder).select { |f| File.file?(folder+'/'+f) }
       files.sort!
-      intervals = compare_components(files, folder)
-        # to do: do something with the output
-      puts intervals
+      compare_components(files, folder)
       
       
     # do something to all files in a folder  

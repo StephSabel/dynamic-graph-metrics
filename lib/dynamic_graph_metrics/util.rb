@@ -13,7 +13,8 @@ require_relative "component_timeline.rb"
 def create_snapshots(sortedgraphfile, splitfilefolder, hour = 4, days = 1)
   filenumber = 0
   timeoffset = hour * 3600
-  lasttimestamp = Time.at(timeoffset + 1)
+  dayseconds = 60*60*24*days
+  nexttimestamp = Time.at(timeoffset + 1)
   splitfilename = splitfilefolder + '/' + sortedgraphfile.split('/')[-1] + "_split"
   splitfile = open(splitfilename + '00', 'w')
   
@@ -21,15 +22,15 @@ def create_snapshots(sortedgraphfile, splitfilefolder, hour = 4, days = 1)
     while line = gf.gets
       
       timestamp = Time.at(line.split(" ")[2].to_i / 1000)
-      timeos = timestamp - timeoffset
-      lasttimeos = lasttimestamp - timeoffset
       
-      unless timeos.yday == lasttimeos.yday and timeos.year == lasttimeos.year
+      unless timestamp < nexttimestamp
         unless filenumber == 0
           splitfile.close
           splitfile = open(splitfilename + (filenumber < 10 ? '0' : '') + filenumber.to_s, 'w')
         end
         filenumber += 1
+        dayspassed = (timestamp - nexttimestamp)/dayseconds + days
+        nexttimestamp += dayspassed.to_i*dayseconds
       end
       
       splitfile.write(line)
@@ -199,10 +200,31 @@ def transpose_arrays(matrix)
   
   result
 end
+
+
+# cleanup community/component files: remove all files that are in a community of size 1
+def cleanup(file)
+  coms = Hash.new{|hash, key| hash[key] = Array.new}
+  File.open(file, "r") do |f|
+    while line = f.gets
+      user = line.split(" ")[0].to_i
+      com = line.split(" ")[1].to_i
+      coms[com] << user
+    end
+  end 
+  coms.delete_if {|key, value| value.size <= 1}
+  File.open(file, "w") do |f|
+    coms.each do |com, users|
+      users.each do |user|
+        f.puts "#{user} #{com}"
+      end
+    end
+  end
+end
   
 # compare all communities/connected components of two days that have at least n users
 # outputs list of community/concom pairs with jaccard coefficient > x
-def compare_components(files, folder, n = 8, x = 0.4)
+def compare_components(files, folder, n = 5, x = 0.3)
   
   days = []
   fronts = Set.new
@@ -254,8 +276,11 @@ def compare_components(files, folder, n = 8, x = 0.4)
       pufile = "#{folder.chomp("/communities")}/#{file.chomp(".communities")}"
       File.open(pufile, 'r') do |puf|
         while line = puf.gets
-          if dayusers[line.split(" ")[0].to_i] == dayusers[line.split(" ")[1].to_i]
-            daycommunities[dayusers[line.split(" ")[0].to_i]].add_edges(line.split(" ")[2].to_i)
+          user1 = line.split(" ")[0].to_i
+          user2 = line.split(" ")[1].to_i
+          edges = line.split(" ")[2].to_i
+          if dayusers[user1] == dayusers[user2]
+            daycommunities[dayusers[user1]].add_edges(edges)
           end
         end
       end
@@ -434,18 +459,20 @@ def compare_components(files, folder, n = 8, x = 0.4)
   end
   
   File.open("#{folder}/metrics/usersnapshots_#{version}_#{n}_#{x}_#{deathoffset}.csv", "w") do |usf|
-    usf.puts "UserID;Active in snapshots;Time from first to last snapshot, switched communities?"
+    usf.puts "UserID;Active in snapshots;Time from first to last snapshot, number of timelines"
     usersnapshots.each_with_index do |snapshots, user|
+      communities = 0
+      timelines = Set.new
       if snapshots
-        usertls = days[snapshots[-1]][userdays[snapshots[-1]][user]].get_front_of # can be nil
-        switch = false
-        snapshots.each do |i|
+        snapshots.reverse_each do |i|
           thistl = days[i][userdays[i][user]].get_front_of
-          switch = true unless usertls.subset? thistl
+          unless thistl < timelines
+            communities += 1
+            timelines += thistl
+          end
         end
         
-        usf.puts "#{user};#{snapshots.size};#{snapshots[-1] - snapshots[0] + 1};#{switch}"
-        
+        usf.puts "#{user};#{snapshots.size};#{snapshots[-1] - snapshots[0] + 1};#{communities}"
       end
     end
   end
