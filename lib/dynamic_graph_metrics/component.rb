@@ -21,11 +21,9 @@ class Component
 
   def add_edges(edges)
     @edges += edges
-    puts "#{edges} edges added to Component #{@componentID}"
   end
   
   def density
-    puts "hey there"
     if @users.size > 1
       return @edges.to_f/(@users.size.to_f * (@users.size.to_f - 1))
     else
