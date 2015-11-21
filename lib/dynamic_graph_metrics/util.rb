@@ -29,7 +29,7 @@ def create_snapshots(sortedgraphfile, splitfilefolder, hour = 4, days = 1)
           splitfile = open(splitfilename + (filenumber < 10 ? '0' : '') + filenumber.to_s, 'w')
         end
         filenumber += 1
-        dayspassed = (timestamp - nexttimestamp)/dayseconds + days
+        dayspassed = (timestamp - nexttimestamp)/dayseconds + 1
         nexttimestamp += dayspassed.to_i*dayseconds
       end
       
