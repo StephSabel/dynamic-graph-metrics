@@ -466,7 +466,7 @@ def compare_components(files, folder, n = 5, x = 0.3)
       if snapshots
         snapshots.reverse_each do |i|
           thistl = days[i][userdays[i][user]].get_front_of
-          unless thistl < timelines
+          unless thistl.subset?(timelines)
             communities += 1
             timelines += thistl
           end
