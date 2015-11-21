@@ -422,11 +422,11 @@ def compare_components(files, folder, n = 5, x = 0.3)
   densities = Hash.new(0)
   timelinemetrics = Hash.new()
   timelines.each do |tl| 
-    sld = [tl.get_size_avg, tl.get_lifetime, tl.get_den_avg]
+    sld = [tl.get_size_avg.round(0), tl.get_lifetime.round(0), tl.get_den_avg.round(5)]
     timelinemetrics[tl.get_ID] = sld
-    sizes_avg[sld[0].round(0)] += 1
+    sizes_avg[sld[0]] += 1
     lifetimes[sld[1]] += 1
-    densities[sld[2].round(5)] += 1
+    densities[sld[2].round(3)] += 1
   end
   
   File.open("#{folder}/metrics/sizedistribution_#{version}_#{n}_#{x}_#{deathoffset}.csv", 'w') do |sdf|
