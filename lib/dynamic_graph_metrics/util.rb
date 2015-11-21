@@ -34,7 +34,6 @@ def create_snapshots(sortedgraphfile, splitfilefolder, hour = 4, days = 1)
       end
       
       splitfile.write(line)
-      lasttimestamp = timestamp
     end
   end
   splitfile.close
