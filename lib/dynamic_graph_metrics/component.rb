@@ -31,6 +31,14 @@ class Component
     end
   end
   
+  def deg_avg
+    if @users.size >= 1
+      return @edges.to_f*2/@users.size.to_f
+    else
+      return -1
+    end
+  end
+  
   def get_set()
     return @users
   end

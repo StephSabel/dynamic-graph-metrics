@@ -52,4 +52,10 @@ class ComponentTimeline
     @timeline.each {|component| sum += component.density}
     return sum / @timeline.size
   end
+  
+  def get_deg_avg
+    sum = 0.0
+    @timeline.each {|component| sum += component.deg_avg}
+    return sum / @timeline.size
+  end
 end

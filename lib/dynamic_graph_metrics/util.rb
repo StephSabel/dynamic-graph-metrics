@@ -414,66 +414,27 @@ def compare_components(files, folder, n = 5, x = 0.3)
     end
   end
   
+  puts "Births: #{births}"
+  puts "Deaths: #{deaths}"
+  puts "Split Events: #{splitevents}"
+  puts "Merge Events: #{mergeevents}"
+  puts "Timelines: #{timelines.size}"
+  
   Dir.mkdir("#{folder}/metrics") unless File.exists?("#{folder}/metrics")
   
   # get size, lifetime and density distribution
   sizes_avg = Hash.new(0)
   lifetimes = Hash.new(0)
   densities = Hash.new(0)
+  degrees = Hash.new(0)
   timelinemetrics = Hash.new()
   timelines.each do |tl| 
-    sld = [tl.get_size_avg.round(0), tl.get_lifetime.round(0), tl.get_den_avg.round(5)]
+    sld = [tl.get_size_avg.round(0), tl.get_lifetime.round(0), tl.get_den_avg.round(5), tl.get_deg_avg.round(3)]
     timelinemetrics[tl.get_ID] = sld
     sizes_avg[sld[0]] += 1
     lifetimes[sld[1]] += 1
     densities[sld[2].round(3)] += 1
-  end
-  
-  File.open("#{folder}/metrics/sizedistribution_#{version}_#{n}_#{x}_#{deathoffset}.csv", 'w') do |sdf|
-    sizes_avg.keys.sort
-    sizes_avg.each do |key, value|
-      sdf.puts "#{key};#{value}"
-    end
-  end
-  
-  File.open("#{folder}/metrics/lifetimedistribution_#{version}_#{n}_#{x}_#{deathoffset}.csv", 'w') do |ldf|
-    lifetimes.keys.sort
-    lifetimes.each do |key, value|
-      ldf.puts "#{key};#{value}"
-    end
-  end
-  
-  File.open("#{folder}/metrics/densitydistribution_#{version}_#{n}_#{x}_#{deathoffset}.csv", 'w') do |ddf|
-    densities.keys.sort
-    densities.each do |key, value|
-      ddf.puts "#{key};#{value}"
-    end
-  end
-  
-  File.open("#{folder}/metrics/timelinemetrics_#{version}_#{n}_#{x}_#{deathoffset}.csv", "w") do |tmf|
-    tmf.puts "TimelineID;Average Size;Lifetime;Average Density"
-    timelinemetrics.each do |key, value|
-      tmf.puts "#{key};#{value[0]};#{value[1]};#{value[2]}"
-    end
-  end
-  
-  File.open("#{folder}/metrics/usersnapshots_#{version}_#{n}_#{x}_#{deathoffset}.csv", "w") do |usf|
-    usf.puts "UserID;Active in snapshots;Time from first to last snapshot, number of timelines"
-    usersnapshots.each_with_index do |snapshots, user|
-      communities = 0
-      timelines = Set.new
-      if snapshots
-        snapshots.reverse_each do |i|
-          thistl = days[i][userdays[i][user]].get_front_of
-          unless thistl.subset?(timelines)
-            communities += 1
-            timelines += thistl
-          end
-        end
-        
-        usf.puts "#{user};#{snapshots.size};#{snapshots[-1] - snapshots[0] + 1};#{communities}"
-      end
-    end
+    degrees[sld[3].round(2)] += 1
   end
   
   File.open("#{folder}/metrics/metrics_#{version}_#{n}_#{x}_#{deathoffset}", "w") do |mf|
@@ -499,9 +460,74 @@ def compare_components(files, folder, n = 5, x = 0.3)
 
   end
   
-  puts "Births: #{births}"
-  puts "Deaths: #{deaths}"
-  puts "Split Events: #{splitevents}"
-  puts "Merge Events: #{mergeevents}"
-  puts "Timelines: #{timelines.size}"
+  File.open("#{folder}/metrics/sizedistribution_#{version}_#{n}_#{x}_#{deathoffset}.csv", 'w') do |sdf|
+    sizes_avg.keys.sort
+    sizes_avg.each do |key, value|
+      sdf.puts "#{key};#{value}"
+    end
+  end
+  
+  File.open("#{folder}/metrics/lifetimedistribution_#{version}_#{n}_#{x}_#{deathoffset}.csv", 'w') do |ldf|
+    lifetimes.keys.sort
+    lifetimes.each do |key, value|
+      ldf.puts "#{key};#{value}"
+    end
+  end
+  
+  File.open("#{folder}/metrics/densitydistribution_#{version}_#{n}_#{x}_#{deathoffset}.csv", 'w') do |ddf|
+    densities.keys.sort
+    densities.each do |key, value|
+      ddf.puts "#{key};#{value};#{degrees[key]}"
+    end
+  end
+  
+  File.open("#{folder}/metrics/timelinemetrics_#{version}_#{n}_#{x}_#{deathoffset}.csv", "w") do |tmf|
+    tmf.puts "TimelineID;Average Size;Lifetime;Average Density"
+    timelinemetrics.each do |key, value|
+      tmf.puts "#{key};#{value[0]};#{value[1]};#{value[2]};#{value[3]}"
+    end
+  end
+  
+  activitymatrix = Array.new(days.size + 1) {Array.new(days.size + 1, 0)}
+  timelinematrix = Array.new(days.size + 1) {Array.new(days.size + 1, 0)}
+
+  usersnapshots.each_with_index do |snapshots, user|
+    communities = 0
+    timelines = Set.new
+    if snapshots
+      snapshots.reverse_each do |i|
+        thistl = days[i][userdays[i][user]].get_front_of
+        unless thistl.subset?(timelines)
+          communities += 1
+          timelines += thistl
+        end
+      end
+      activitymatrix[snapshots[-1] - snapshots[0] + 1][snapshots.size] += 1
+      timelinematrix[snapshots.size][communities] += 1
+    end
+      
+    File.open("#{folder}/metrics/useractivity_#{version}_#{n}_#{x}_#{deathoffset}.csv", "w") do |uaf|
+      firstline = ";"
+      (days.size + 1).times {|i| firstline += "#{i} days;"}
+      uaf.puts firstline
+      activitymatrix.each_with_index do |activityarray, i|
+        line = "#{i} days;"
+        activityarray.each {|value| line += "#{value};"}
+        uaf.puts line
+      end
+    end
+    
+    File.open("#{folder}/metrics/usertimelines_#{version}_#{n}_#{x}_#{deathoffset}.csv", "w") do |utf|
+      firstline = ";"
+      (days.size + 1).size.times {|i| firstline += "#{i} days;"}
+      utf.puts firstline
+      timelinematrix.each_with_index do |timelinearray, i|
+        line = "#{i} days;"
+        timelinearray.each {|value| line += "#{value};"}
+        utf.puts line
+      end
+    end
+
+  end
+
 end
