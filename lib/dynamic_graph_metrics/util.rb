@@ -223,7 +223,7 @@ end
   
 # compare all communities/connected components of two days that have at least n users
 # outputs list of community/concom pairs with jaccard coefficient > x
-def compare_components(files, folder, n = 5, x = 0.3)
+def compare_components(files, folder, n = 3, x = 0.3)
   
   days = []
   fronts = Set.new
@@ -241,6 +241,7 @@ def compare_components(files, folder, n = 5, x = 0.3)
   #metrics
   times = []
   communitynumbers = []
+  communitymatches = []
   usersnapshots = []
   userdays = []
   
@@ -345,6 +346,9 @@ def compare_components(files, folder, n = 5, x = 0.3)
       puts "matching: #{(Time.now - timelog).round} seconds"
       puts "time per front: #{((Time.now - timelog)/fronts.size).round(3)}" unless fronts.size == 0
       timelog = Time.now
+      
+      communitymatches << matches.size
+    
     
     
       # iterate through new communities to add them to timelines
@@ -485,6 +489,13 @@ def compare_components(files, folder, n = 5, x = 0.3)
     tmf.puts "TimelineID;Average Size;Lifetime;Average Density"
     timelinemetrics.each do |key, value|
       tmf.puts "#{key};#{value[0]};#{value[1]};#{value[2]};#{value[3]}"
+    end
+  end
+  
+  File.open("#{folder}/metrics/matchmetrics_#{version}_#{n}_#{x}_#{deathoffset}.csv", "w") do |mmf|
+    mmf.puts "Day;Communities;Matches"
+    communitynumbers.each_with_index do |communities, index|
+      mmf.puts "#{index};#{communities};#{communitymatches[index]}"
     end
   end
   
